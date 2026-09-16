@@ -53,16 +53,22 @@ export function ProdutoFormDialog({ produto }: { produto?: Produto }) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
+      <DialogTrigger
+        render={
+          isEdit ? (
+            <Button variant="ghost" size="icon" aria-label="Editar produto" />
+          ) : (
+            <Button />
+          )
+        }
+      >
         {isEdit ? (
-          <Button variant="ghost" size="icon" aria-label="Editar produto">
-            <Pencil className="h-4 w-4" />
-          </Button>
+          <Pencil className="h-4 w-4" />
         ) : (
-          <Button>
+          <>
             <Plus className="mr-2 h-4 w-4" />
             Novo produto
-          </Button>
+          </>
         )}
       </DialogTrigger>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">

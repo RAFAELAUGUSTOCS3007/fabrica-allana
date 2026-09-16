@@ -49,9 +49,7 @@ export function MovimentacaoFormDialog({ produtos }: { produtos: Produto[] }) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>Registrar movimentação</Button>
-      </DialogTrigger>
+      <DialogTrigger render={<Button />}>Registrar movimentação</DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Registrar movimentação de estoque</DialogTitle>

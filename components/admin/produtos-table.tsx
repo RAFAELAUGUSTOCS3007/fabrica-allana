@@ -103,10 +103,10 @@ export function ProdutosTable({ produtos }: { produtos: Produto[] }) {
                   <div className="flex items-center justify-end gap-1">
                     <ProdutoFormDialog produto={produto} />
                     <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="icon" aria-label="Excluir produto">
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
+                      <AlertDialogTrigger
+                        render={<Button variant="ghost" size="icon" aria-label="Excluir produto" />}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>

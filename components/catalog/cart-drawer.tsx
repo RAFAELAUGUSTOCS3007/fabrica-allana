@@ -23,16 +23,14 @@ export function CartDrawer() {
 
   return (
     <Sheet>
-      <SheetTrigger asChild>
-        <Button variant="outline" className="relative">
-          <ShoppingBag className="h-4 w-4" />
-          <span className="hidden sm:inline">Carrinho</span>
-          {totalItens > 0 && (
-            <span className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-xs font-semibold text-primary-foreground">
-              {totalItens}
-            </span>
-          )}
-        </Button>
+      <SheetTrigger render={<Button variant="outline" className="relative" />}>
+        <ShoppingBag className="h-4 w-4" />
+        <span className="hidden sm:inline">Carrinho</span>
+        {totalItens > 0 && (
+          <span className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-xs font-semibold text-primary-foreground">
+            {totalItens}
+          </span>
+        )}
       </SheetTrigger>
       <SheetContent className="flex w-full flex-col sm:max-w-md">
         <SheetHeader>
@@ -94,10 +92,13 @@ export function CartDrawer() {
             <span>Total</span>
             <span>{formatBRL(total)}</span>
           </div>
-          <Button asChild size="lg" disabled={itens.length === 0} className="w-full">
-            <a href={buildWhatsAppOrderUrl(itens, total)} target="_blank" rel="noopener noreferrer">
-              Finalizar pedido no WhatsApp
-            </a>
+          <Button
+            size="lg"
+            disabled={itens.length === 0}
+            className="w-full"
+            render={<a href={buildWhatsAppOrderUrl(itens, total)} target="_blank" rel="noopener noreferrer" />}
+          >
+            Finalizar pedido no WhatsApp
           </Button>
         </SheetFooter>
       </SheetContent>
