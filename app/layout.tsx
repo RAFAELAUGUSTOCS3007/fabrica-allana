@@ -3,8 +3,9 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'v0 App',
-  description: 'Created with v0',
+  title: 'A&A Sports | Catálogo Atacado',
+  description:
+    'Catálogo de atacado da A&A Sports: conjuntinhos de futebol infantil por time e tamanho, para lojistas montarem pedidos direto pelo WhatsApp.',
   generator: 'v0.app',
   icons: {
     icon: [
@@ -26,11 +27,9 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  colorScheme: 'light dark',
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: 'white' },
-    { media: '(prefers-color-scheme: dark)', color: 'black' },
-  ],
+  colorScheme: 'light',
+  themeColor: '#1c3f40',
+  userScalable: true,
 }
 
 export default function RootLayout({
@@ -39,7 +38,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
+    <html lang="pt-BR">
       <body className="antialiased">
         {children}
         {process.env.NODE_ENV === 'production' && <Analytics />}
