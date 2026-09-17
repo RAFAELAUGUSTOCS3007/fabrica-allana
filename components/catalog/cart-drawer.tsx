@@ -19,10 +19,10 @@ function formatBRL(value: number) {
 }
 
 export function CartDrawer() {
-  const { itens, total, totalItens, atualizarQuantidade, removerItem } = useCart()
+  const { itens, total, totalItens, atualizarQuantidade, removerItem, cartOpen, setCartOpen } = useCart()
 
   return (
-    <Sheet>
+    <Sheet open={cartOpen} onOpenChange={setCartOpen}>
       <SheetTrigger render={<Button variant="outline" className="relative" />}>
         <ShoppingBag className="h-4 w-4" />
         <span className="hidden sm:inline">Carrinho</span>

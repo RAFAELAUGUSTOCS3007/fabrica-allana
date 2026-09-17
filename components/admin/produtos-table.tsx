@@ -101,6 +101,7 @@ export function ProdutosTable({ produtos }: { produtos: Produto[] }) {
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex items-center justify-end gap-1">
+                    <ProdutoFormDialog duplicarDe={produto} />
                     <ProdutoFormDialog produto={produto} />
                     <AlertDialog>
                       <AlertDialogTrigger

@@ -13,6 +13,8 @@ type CartContextValue = {
   removerItem: (produtoId: string) => void
   atualizarQuantidade: (produtoId: string, quantidade: number) => void
   limparCarrinho: () => void
+  cartOpen: boolean
+  setCartOpen: (open: boolean) => void
 }
 
 const CartContext = createContext<CartContextValue | null>(null)
@@ -20,6 +22,7 @@ const CartContext = createContext<CartContextValue | null>(null)
 export function CartProvider({ children }: { children: ReactNode }) {
   const [itens, setItens] = useState<ItemVenda[]>([])
   const [hydrated, setHydrated] = useState(false)
+  const [cartOpen, setCartOpen] = useState(false)
 
   useEffect(() => {
     try {
@@ -76,8 +79,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const total = useMemo(() => itens.reduce((sum, item) => sum + item.quantidade * item.preco_unitario, 0), [itens])
 
   const value = useMemo(
-    () => ({ itens, totalItens, total, adicionarItem, removerItem, atualizarQuantidade, limparCarrinho }),
-    [itens, totalItens, total, adicionarItem, removerItem, atualizarQuantidade, limparCarrinho],
+    () => ({
+      itens,
+      totalItens,
+      total,
+      adicionarItem,
+      removerItem,
+      atualizarQuantidade,
+      limparCarrinho,
+      cartOpen,
+      setCartOpen,
+    }),
+    [itens, totalItens, total, adicionarItem, removerItem, atualizarQuantidade, limparCarrinho, cartOpen],
   )
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>

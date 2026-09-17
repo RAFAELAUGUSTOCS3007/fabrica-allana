@@ -83,18 +83,18 @@ export function VendaFormDialog({ produtos }: { produtos: Produto[] }) {
         <Plus className="mr-2 h-4 w-4" />
         Registrar venda
       </DialogTrigger>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+      <DialogContent className="max-h-[90vh] w-[calc(100%-1.5rem)] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Registrar venda manual</DialogTitle>
           <DialogDescription>Adicione os produtos vendidos e confirme para dar baixa no estoque.</DialogDescription>
         </DialogHeader>
 
         <div className="flex flex-col gap-3 rounded-md border border-border p-3">
-          <div className="grid grid-cols-[1fr_auto] gap-2">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_auto]">
             <select
               value={produtoId}
               onChange={(e) => setProdutoId(e.target.value)}
-              className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
+              className="flex h-11 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 sm:h-9 sm:text-sm"
             >
               <option value="">Selecione um produto</option>
               {produtos.map((produto) => (
@@ -108,10 +108,10 @@ export function VendaFormDialog({ produtos }: { produtos: Produto[] }) {
               min="1"
               value={quantidade}
               onChange={(e) => setQuantidade(e.target.value)}
-              className="w-20"
+              className="h-11 w-full text-base sm:h-9 sm:w-20 sm:text-sm"
             />
           </div>
-          <Button type="button" variant="secondary" onClick={handleAddItem}>
+          <Button type="button" variant="secondary" onClick={handleAddItem} className="h-11 sm:h-8">
             <Plus className="mr-2 h-4 w-4" />
             Adicionar item
           </Button>
@@ -122,20 +122,21 @@ export function VendaFormDialog({ produtos }: { produtos: Produto[] }) {
             {itens.map((item, index) => (
               <div
                 key={`${item.produto_id}-${index}`}
-                className="flex items-center justify-between rounded-md border border-border px-3 py-2 text-sm"
+                className="flex items-center justify-between gap-2 rounded-md border border-border px-3 py-2 text-sm"
               >
-                <div>
-                  <p className="font-medium">{item.nome}</p>
+                <div className="min-w-0">
+                  <p className="truncate font-medium">{item.nome}</p>
                   <p className="text-xs text-muted-foreground">
                     {item.time} · Tam. {item.tamanho} · {item.quantidade}x {formatBRL(item.preco_unitario)}
                   </p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex shrink-0 items-center gap-1">
                   <p className="font-medium">{formatBRL(item.quantidade * item.preco_unitario)}</p>
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon"
+                    className="h-9 w-9 sm:h-8 sm:w-8"
                     onClick={() => setItens((prev) => prev.filter((_, i) => i !== index))}
                   >
                     <Trash2 className="h-4 w-4 text-destructive" />
@@ -154,7 +155,12 @@ export function VendaFormDialog({ produtos }: { produtos: Produto[] }) {
           <input type="hidden" name="itens" value={JSON.stringify(itens)} />
           <div className="flex flex-col gap-2">
             <Label htmlFor="cliente">Cliente (opcional)</Label>
-            <Input id="cliente" name="cliente" placeholder="Nome da loja ou cliente" />
+            <Input
+              id="cliente"
+              name="cliente"
+              placeholder="Nome da loja ou cliente"
+              className="h-11 text-base sm:h-9 sm:text-sm"
+            />
           </div>
           {state.error && <p className="text-sm text-destructive">{state.error}</p>}
           <DialogFooter>

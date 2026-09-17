@@ -50,7 +50,7 @@ export function MovimentacaoFormDialog({ produtos }: { produtos: Produto[] }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger render={<Button />}>Registrar movimentação</DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="w-[calc(100%-1.5rem)] sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Registrar movimentação de estoque</DialogTitle>
           <DialogDescription>Lance entradas de produção ou saídas manuais do estoque.</DialogDescription>
@@ -60,7 +60,7 @@ export function MovimentacaoFormDialog({ produtos }: { produtos: Produto[] }) {
             <button
               type="button"
               onClick={() => setTipo('entrada')}
-              className={`flex items-center justify-center gap-2 rounded-md border px-3 py-2 text-sm font-medium transition-colors ${
+              className={`flex h-11 items-center justify-center gap-2 rounded-md border px-3 text-sm font-medium transition-colors ${
                 tipo === 'entrada'
                   ? 'border-primary bg-primary text-primary-foreground'
                   : 'border-input text-foreground hover:bg-muted'
@@ -72,7 +72,7 @@ export function MovimentacaoFormDialog({ produtos }: { produtos: Produto[] }) {
             <button
               type="button"
               onClick={() => setTipo('saida')}
-              className={`flex items-center justify-center gap-2 rounded-md border px-3 py-2 text-sm font-medium transition-colors ${
+              className={`flex h-11 items-center justify-center gap-2 rounded-md border px-3 text-sm font-medium transition-colors ${
                 tipo === 'saida'
                   ? 'border-primary bg-primary text-primary-foreground'
                   : 'border-input text-foreground hover:bg-muted'
@@ -90,7 +90,7 @@ export function MovimentacaoFormDialog({ produtos }: { produtos: Produto[] }) {
               id="produto_id"
               name="produto_id"
               required
-              className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
+              className="flex h-11 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 sm:h-9 sm:text-sm"
             >
               <option value="">Selecione um produto</option>
               {produtos.map((produto) => (
@@ -103,12 +103,25 @@ export function MovimentacaoFormDialog({ produtos }: { produtos: Produto[] }) {
 
           <div className="flex flex-col gap-2">
             <Label htmlFor="quantidade">Quantidade</Label>
-            <Input id="quantidade" name="quantidade" type="number" min="1" required placeholder="10" />
+            <Input
+              id="quantidade"
+              name="quantidade"
+              type="number"
+              min="1"
+              required
+              placeholder="10"
+              className="h-11 text-base sm:h-9 sm:text-sm"
+            />
           </div>
 
           <div className="flex flex-col gap-2">
             <Label htmlFor="motivo">Motivo (opcional)</Label>
-            <Input id="motivo" name="motivo" placeholder="Produção nova, ajuste, perda..." />
+            <Input
+              id="motivo"
+              name="motivo"
+              placeholder="Produção nova, ajuste, perda..."
+              className="h-11 text-base sm:h-9 sm:text-sm"
+            />
           </div>
 
           {state.error && <p className="text-sm text-destructive">{state.error}</p>}

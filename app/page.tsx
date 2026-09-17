@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { SiteHeader } from '@/components/catalog/site-header'
 import { CartProvider } from '@/components/catalog/cart-context'
 import { CatalogClient } from '@/components/catalog/catalog-client'
+import { CartBottomBar } from '@/components/catalog/cart-bottom-bar'
 import type { Produto } from '@/lib/types'
 
 export default async function CatalogPage() {
@@ -36,6 +37,7 @@ export default async function CatalogPage() {
         <footer className="border-t border-border py-6 text-center text-xs text-muted-foreground">
           A&amp;A Sports · Preços exclusivos para revenda no atacado
         </footer>
+        <CartBottomBar />
       </div>
     </CartProvider>
   )
