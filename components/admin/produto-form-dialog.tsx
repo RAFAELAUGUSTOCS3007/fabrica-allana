@@ -2,7 +2,8 @@
 
 import { useActionState, useEffect, useRef, useState } from 'react'
 import { useFormStatus } from 'react-dom'
-import { Plus, Pencil, ImagePlus, Copy } from 'lucide-react'
+import { Plus, Pencil, ImagePlus, Copy, Loader2 } from 'lucide-react'
+import { upload } from '@vercel/blob/client'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -86,6 +87,8 @@ export function ProdutoFormDialog({ produto, duplicarDe }: { produto?: Produto; 
   const [state, formAction] = useActionState(action, initialState)
   const [open, setOpen] = useState(false)
   const [preview, setPreview] = useState<string | null>(base?.foto_url ?? null)
+  const [fotoUrl, setFotoUrl] = useState<string | null>(base?.foto_url ?? null)
+  const [uploading, setUploading] = useState(false)
   const formRef = useRef<HTMLFormElement>(null)
 
   useEffect(() => {
@@ -94,10 +97,40 @@ export function ProdutoFormDialog({ produto, duplicarDe }: { produto?: Produto; 
       setOpen(false)
       formRef.current?.reset()
       setPreview(base?.foto_url ?? null)
+      setFotoUrl(base?.foto_url ?? null)
     } else if (state.error) {
       toast.error(state.error)
     }
   }, [state, isEdit, base?.foto_url])
+
+  async function handleFotoChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('A imagem deve ter no máximo 10 MB.')
+      event.target.value = ''
+      return
+    }
+
+    setPreview(URL.createObjectURL(file))
+    setUploading(true)
+    try {
+      const extension = file.name.split('.').pop() || 'jpg'
+      const blob = await upload(`produtos/${crypto.randomUUID()}.${extension}`, file, {
+        access: 'public',
+        handleUploadUrl: '/api/upload',
+      })
+      setFotoUrl(blob.url)
+    } catch (err) {
+      console.log('[v0] foto upload error:', err)
+      toast.error('Não foi possível enviar a foto. Tente novamente.')
+      setPreview(base?.foto_url ?? null)
+      event.target.value = ''
+    } finally {
+      setUploading(false)
+    }
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -139,32 +172,33 @@ export function ProdutoFormDialog({ produto, duplicarDe }: { produto?: Produto; 
         </DialogHeader>
         <form ref={formRef} action={formAction} className="flex flex-col gap-4">
           {isEdit && <input type="hidden" name="id" value={produto?.id} />}
-          {isDuplicado && duplicarDe?.foto_url && (
-            <input type="hidden" name="foto_url_existente" value={duplicarDe.foto_url} />
-          )}
+          <input type="hidden" name="foto_url" value={fotoUrl ?? ''} />
 
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
-            <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-muted">
+            <div className="relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-muted">
               {preview ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={preview} alt="Pré-visualização do produto" className="h-full w-full object-cover" />
               ) : (
                 <ImagePlus className="h-6 w-6 text-muted-foreground" />
               )}
+              {uploading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-background/60">
+                  <Loader2 className="h-5 w-5 animate-spin text-foreground" />
+                </div>
+              )}
             </div>
             <div className="flex flex-1 flex-col gap-2">
               <Label htmlFor="foto">Foto do produto</Label>
               <Input
                 id="foto"
-                name="foto"
                 type="file"
                 accept="image/*"
+                disabled={uploading}
                 className={inputTouch}
-                onChange={(event) => {
-                  const file = event.target.files?.[0]
-                  if (file) setPreview(URL.createObjectURL(file))
-                }}
+                onChange={handleFotoChange}
               />
+              {uploading && <p className="text-xs text-muted-foreground">Enviando foto...</p>}
             </div>
           </div>
 

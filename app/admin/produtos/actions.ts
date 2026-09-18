@@ -1,7 +1,6 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { put } from '@vercel/blob'
 import { z } from 'zod'
 import { createServiceClient } from '@/lib/supabase/service'
 
@@ -19,16 +18,6 @@ const produtoSchema = z.object({
 })
 
 export type ProdutoFormState = { error: string | null; success: boolean }
-
-async function uploadFotoIfPresent(formData: FormData): Promise<string | null> {
-  const foto = formData.get('foto')
-  if (!(foto instanceof File) || foto.size === 0) return null
-
-  const extension = foto.name.split('.').pop() || 'jpg'
-  const filename = `produtos/${crypto.randomUUID()}.${extension}`
-  const blob = await put(filename, foto, { access: 'public' })
-  return blob.url
-}
 
 export async function createProdutoAction(
   _prevState: ProdutoFormState,
@@ -52,14 +41,13 @@ export async function createProdutoAction(
   }
 
   try {
-    const fotoUrl = await uploadFotoIfPresent(formData)
-    const fotoUrlExistente = String(formData.get('foto_url_existente') ?? '') || null
+    const fotoUrl = String(formData.get('foto_url') ?? '') || null
     const supabase = createServiceClient()
     const { error } = await supabase.from('produtos').insert({
       ...parsed.data,
       cor: parsed.data.cor || null,
       custo: parsed.data.custo ?? null,
-      foto_url: fotoUrl ?? fotoUrlExistente,
+      foto_url: fotoUrl,
     })
 
     if (error) {
@@ -101,14 +89,14 @@ export async function updateProdutoAction(
   }
 
   try {
-    const fotoUrl = await uploadFotoIfPresent(formData)
+    const fotoUrl = String(formData.get('foto_url') ?? '') || null
     const supabase = createServiceClient()
     const updatePayload: Record<string, unknown> = {
       ...parsed.data,
       cor: parsed.data.cor || null,
       custo: parsed.data.custo ?? null,
+      foto_url: fotoUrl,
     }
-    if (fotoUrl) updatePayload.foto_url = fotoUrl
 
     const { error } = await supabase.from('produtos').update(updatePayload).eq('id', id)
 
