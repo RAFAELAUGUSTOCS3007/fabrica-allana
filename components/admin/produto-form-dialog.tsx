@@ -36,6 +36,48 @@ const inputTouch = 'h-11 text-base sm:h-9 sm:text-sm'
 const selectTouch =
   'flex h-11 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 sm:h-9 sm:text-sm'
 
+function centsToBRL(cents: number) {
+  return (cents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+
+function CurrencyField({
+  id,
+  name,
+  label,
+  defaultValue,
+  required,
+}: {
+  id: string
+  name: string
+  label: string
+  defaultValue?: number | string | null
+  required?: boolean
+}) {
+  const initialCents = defaultValue ? Math.round(Number(defaultValue) * 100) : 0
+  const [cents, setCents] = useState(initialCents)
+  const [touched, setTouched] = useState(false)
+  const displayValue = touched || cents > 0 ? `R$ ${centsToBRL(cents)}` : ''
+
+  return (
+    <div className="flex flex-col gap-2">
+      <Label htmlFor={id}>{label}</Label>
+      <Input
+        id={id}
+        inputMode="numeric"
+        placeholder="R$ 0,00"
+        className={inputTouch}
+        value={displayValue}
+        onChange={(event) => {
+          const digitsOnly = event.target.value.replace(/\D/g, '')
+          setTouched(true)
+          setCents(digitsOnly ? Number.parseInt(digitsOnly, 10) : 0)
+        }}
+      />
+      <input type="hidden" name={name} value={(cents / 100).toFixed(2)} required={required} />
+    </div>
+  )
+}
+
 export function ProdutoFormDialog({ produto, duplicarDe }: { produto?: Produto; duplicarDe?: Produto }) {
   const isEdit = Boolean(produto)
   const isDuplicado = Boolean(duplicarDe) && !isEdit
@@ -175,34 +217,20 @@ export function ProdutoFormDialog({ produto, duplicarDe }: { produto?: Produto; 
               <Input id="cor" name="cor" defaultValue={base?.cor ?? ''} placeholder="Vermelho" className={inputTouch} />
             </div>
 
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="preco_atacado">Preço no atacado (R$)</Label>
-              <Input
-                id="preco_atacado"
-                name="preco_atacado"
-                type="number"
-                step="0.01"
-                min="0"
-                defaultValue={base?.preco_atacado}
-                placeholder="39.90"
-                className={inputTouch}
-                required
-              />
-            </div>
+            <CurrencyField
+              id="preco_atacado"
+              name="preco_atacado"
+              label="Preço no atacado"
+              defaultValue={base?.preco_atacado}
+              required
+            />
 
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="custo">Custo de produção (R$)</Label>
-              <Input
-                id="custo"
-                name="custo"
-                type="number"
-                step="0.01"
-                min="0"
-                defaultValue={isDuplicado ? '' : base?.custo ?? ''}
-                placeholder="18.00"
-                className={inputTouch}
-              />
-            </div>
+            <CurrencyField
+              id="custo"
+              name="custo"
+              label="Custo de produção"
+              defaultValue={isDuplicado ? '' : base?.custo ?? ''}
+            />
 
             <div className="flex flex-col gap-2">
               <Label htmlFor="estoque_atual">Estoque atual</Label>
