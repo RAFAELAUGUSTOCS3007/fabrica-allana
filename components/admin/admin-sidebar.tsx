@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { LayoutDashboard, Shirt, Boxes, Receipt, LogOut, Store } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { Logo } from '@/components/catalog/logo'
 import { logoutAction } from '@/app/admin/actions/auth'
 
 const links = [
@@ -20,8 +21,8 @@ export function AdminSidebar() {
   return (
     <aside className="flex h-dvh w-60 shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
       <div className="px-5 py-6">
-        <p className="text-xs font-semibold uppercase tracking-widest text-sidebar-foreground/60">A&amp;A Sports</p>
-        <p className="font-display text-lg font-extrabold">Painel da fábrica</p>
+        <Logo onDark />
+        <p className="mt-3 font-display text-lg font-extrabold">Painel da fábrica</p>
       </div>
 
       <nav className="flex flex-1 flex-col gap-1 px-3">
