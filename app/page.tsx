@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { SiteHeader } from '@/components/catalog/site-header'
+import { CatalogHero } from '@/components/catalog/catalog-hero'
 import { CartProvider } from '@/components/catalog/cart-context'
 import { CatalogClient } from '@/components/catalog/catalog-client'
 import { CartBottomBar } from '@/components/catalog/cart-bottom-bar'
@@ -25,15 +26,8 @@ export default async function CatalogPage() {
     <CartProvider>
       <div className="flex min-h-dvh flex-col bg-background">
         <SiteHeader />
-        <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-8 sm:px-6">
-          <div>
-            <h1 className="font-display text-2xl font-extrabold tracking-tight sm:text-3xl">
-              Conjuntinhos de futebol para revenda
-            </h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Monte seu pedido de atacado e finalize direto pelo WhatsApp.
-            </p>
-          </div>
+        <CatalogHero />
+        <main className="flex flex-1 flex-col">
           <CatalogClient produtos={produtos} />
         </main>
         <footer className="border-t border-border py-6 text-center text-xs text-muted-foreground">
