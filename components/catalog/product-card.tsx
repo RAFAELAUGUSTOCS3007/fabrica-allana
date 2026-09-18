@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { ImageOff, Minus, Plus, ShoppingCart } from 'lucide-react'
 import { toast } from 'sonner'
+import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
@@ -20,39 +21,46 @@ export function ProductCard({ produto }: { produto: Produto }) {
   const estoqueBaixo = produto.estoque_atual > 0 && produto.estoque_atual <= 5
 
   return (
-    <Card className="flex flex-col overflow-hidden">
-      <div className="relative aspect-square bg-muted">
+    <Card className="flex flex-col overflow-hidden rounded-2xl border-border py-0 shadow-none">
+      <div className="relative aspect-square bg-surface-tint">
         {produto.foto_url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={produto.foto_url || '/placeholder.svg'}
             alt={`${produto.nome} do ${produto.time}, tamanho ${produto.tamanho}`}
-            className="h-full w-full object-cover"
+            className={cn('h-full w-full object-cover', semEstoque && 'opacity-60')}
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center">
             <ImageOff className="h-8 w-8 text-muted-foreground" />
           </div>
         )}
-        {semEstoque && (
-          <div className="absolute inset-0 flex items-center justify-center bg-background/70">
-            <Badge variant="destructive">Sem estoque</Badge>
-          </div>
-        )}
+        <Badge className="absolute left-2 top-2 border-transparent bg-primary text-primary-foreground">
+          {produto.categoria}
+        </Badge>
         {estoqueBaixo && (
-          <Badge className="absolute left-2 top-2 border-amber-300 bg-amber-100 text-amber-800 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-300">
+          <Badge className="absolute right-2 top-2 border-transparent bg-gold text-gold-foreground">
             Últimas {produto.estoque_atual} unidades
           </Badge>
         )}
+        {semEstoque && (
+          <div className="absolute inset-0 flex items-center justify-center bg-white/40">
+            <Badge
+              variant="destructive"
+              className="-rotate-12 border-transparent bg-foreground/90 px-4 py-1 text-sm font-bold uppercase tracking-wide text-background"
+            >
+              Esgotado
+            </Badge>
+          </div>
+        )}
       </div>
-      <CardContent className="flex flex-1 flex-col gap-1 pt-4">
-        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{produto.categoria}</p>
-        <h3 className="font-semibold leading-tight">{produto.nome}</h3>
+      <CardContent className="flex flex-1 flex-col gap-1 px-4 pt-4">
+        <h3 className="font-display font-bold leading-tight text-foreground">{produto.nome}</h3>
         <p className="text-sm text-muted-foreground">
           {produto.time} · Tam. {produto.tamanho}
           {produto.cor ? ` · ${produto.cor}` : ''}
         </p>
-        <p className="mt-2 text-lg font-bold text-primary">{formatBRL(produto.preco_atacado)}</p>
+        <p className="font-display mt-2 text-lg font-extrabold text-primary">{formatBRL(produto.preco_atacado)}</p>
       </CardContent>
       <CardFooter className="flex items-center gap-2 pt-0">
         <div className="flex items-center rounded-md border border-input">

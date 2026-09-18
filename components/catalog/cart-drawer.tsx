@@ -27,7 +27,7 @@ export function CartDrawer() {
         <ShoppingBag className="h-4 w-4" />
         <span className="hidden sm:inline">Carrinho</span>
         {totalItens > 0 && (
-          <span className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-xs font-semibold text-primary-foreground">
+          <span className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-gold px-1 text-xs font-semibold text-gold-foreground">
             {totalItens}
           </span>
         )}
@@ -50,7 +50,7 @@ export function CartDrawer() {
                     <p className="text-xs text-muted-foreground">
                       {item.time} · Tam. {item.tamanho}
                     </p>
-                    <p className="mt-1 text-sm font-semibold text-primary">{formatBRL(item.preco_unitario)}</p>
+                    <p className="font-display mt-1 text-sm font-bold text-primary">{formatBRL(item.preco_unitario)}</p>
                   </div>
                   <div className="flex flex-col items-end gap-2">
                     <button
@@ -88,14 +88,14 @@ export function CartDrawer() {
         </div>
 
         <SheetFooter className="flex-col gap-3 border-t border-border pt-4">
-          <div className="flex items-center justify-between text-base font-semibold">
+          <div className="font-display flex items-center justify-between text-base font-bold">
             <span>Total</span>
             <span>{formatBRL(total)}</span>
           </div>
           <Button
             size="lg"
             disabled={itens.length === 0}
-            className="w-full"
+            className="w-full bg-gold text-gold-foreground hover:bg-gold/90"
             render={<a href={buildWhatsAppOrderUrl(itens, total)} target="_blank" rel="noopener noreferrer" />}
           >
             Finalizar pedido no WhatsApp
