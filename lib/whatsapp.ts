@@ -7,19 +7,13 @@ function formatBRL(value: number) {
 export function buildWhatsAppOrderUrl(itens: ItemVenda[], total: number) {
   const phone = (process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? '').replace(/\D/g, '')
 
-  const linhas = itens.map(
-    (item) =>
-      `• ${item.quantidade}x ${item.nome} - ${item.time} (Tam. ${item.tamanho}) - ${formatBRL(
-        item.quantidade * item.preco_unitario,
-      )}`,
-  )
+  const linhas = itens.map((item) => `- ${item.quantidade}x ${item.nome}, tamanho ${item.tamanho}`)
 
   const mensagem = [
-    'Olá! Gostaria de fazer o seguinte pedido no atacado:',
-    '',
+    'Olá! Gostaria de finalizar a compra de:',
     ...linhas,
     '',
-    `Total: ${formatBRL(total)}`,
+    `Total estimado: ${formatBRL(total)}`,
   ].join('\n')
 
   const encoded = encodeURIComponent(mensagem)
