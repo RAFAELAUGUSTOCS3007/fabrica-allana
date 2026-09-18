@@ -55,10 +55,22 @@ export async function registrarVendaAction(
 
   const estoquePorId = new Map(produtos.map((p) => [p.id, p.estoque_atual]))
 
+  // Agrega a quantidade por produto para validar e dar baixa considerando
+  // linhas repetidas do mesmo produto (evita venda acima do estoque real).
+  const quantidadePorId = new Map<string, number>()
+  const nomePorId = new Map<string, string>()
   for (const item of itens) {
-    const disponivel = estoquePorId.get(item.produto_id) ?? 0
-    if (item.quantidade > disponivel) {
-      return { error: `Estoque insuficiente para "${item.nome}". Disponível: ${disponivel} un.`, success: false }
+    quantidadePorId.set(item.produto_id, (quantidadePorId.get(item.produto_id) ?? 0) + item.quantidade)
+    nomePorId.set(item.produto_id, item.nome)
+  }
+
+  for (const [id, qtd] of quantidadePorId) {
+    const disponivel = estoquePorId.get(id) ?? 0
+    if (qtd > disponivel) {
+      return {
+        error: `Estoque insuficiente para "${nomePorId.get(id) ?? 'produto'}". Disponível: ${disponivel} un.`,
+        success: false,
+      }
     }
   }
 

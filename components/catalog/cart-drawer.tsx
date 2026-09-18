@@ -94,6 +94,7 @@ export function CartDrawer() {
           </div>
           <Button
             size="lg"
+            nativeButton={false}
             disabled={itens.length === 0}
             className="w-full bg-gold text-gold-foreground hover:bg-gold/90"
             render={<a href={buildWhatsAppOrderUrl(itens, total)} target="_blank" rel="noopener noreferrer" />}
