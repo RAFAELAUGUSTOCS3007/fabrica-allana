@@ -17,6 +17,7 @@ export function ProductCard({ produto }: { produto: Produto }) {
   const { adicionarItem } = useCart()
   const [quantidade, setQuantidade] = useState(1)
   const semEstoque = produto.estoque_atual <= 0
+  const estoqueBaixo = produto.estoque_atual > 0 && produto.estoque_atual <= 5
 
   return (
     <Card className="flex flex-col overflow-hidden">
@@ -37,6 +38,11 @@ export function ProductCard({ produto }: { produto: Produto }) {
           <div className="absolute inset-0 flex items-center justify-center bg-background/70">
             <Badge variant="destructive">Sem estoque</Badge>
           </div>
+        )}
+        {estoqueBaixo && (
+          <Badge className="absolute left-2 top-2 border-amber-300 bg-amber-100 text-amber-800 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-300">
+            Últimas {produto.estoque_atual} unidades
+          </Badge>
         )}
       </div>
       <CardContent className="flex flex-1 flex-col gap-1 pt-4">

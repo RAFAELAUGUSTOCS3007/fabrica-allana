@@ -53,12 +53,13 @@ export async function createProdutoAction(
 
   try {
     const fotoUrl = await uploadFotoIfPresent(formData)
+    const fotoUrlExistente = String(formData.get('foto_url_existente') ?? '') || null
     const supabase = createServiceClient()
     const { error } = await supabase.from('produtos').insert({
       ...parsed.data,
       cor: parsed.data.cor || null,
       custo: parsed.data.custo ?? null,
-      foto_url: fotoUrl,
+      foto_url: fotoUrl ?? fotoUrlExistente,
     })
 
     if (error) {
