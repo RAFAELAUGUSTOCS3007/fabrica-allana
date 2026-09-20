@@ -11,11 +11,14 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 
+export type Ordenacao = 'recentes' | 'menor-preco' | 'maior-preco'
+
 export type Filtros = {
   busca: string
   time: string
   tamanho: string
   categoria: string
+  ordenar: Ordenacao
 }
 
 function Chip({
@@ -82,6 +85,19 @@ export function CatalogFilters({
                   {tamanho}
                 </SelectItem>
               ))}
+            </SelectContent>
+          </Select>
+          <Select
+            value={filtros.ordenar}
+            onValueChange={(value) => onChange({ ...filtros, ordenar: value as Ordenacao })}
+          >
+            <SelectTrigger className="w-full rounded-full bg-card sm:w-40">
+              <SelectValue placeholder="Ordenar" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="recentes">Mais recentes</SelectItem>
+              <SelectItem value="menor-preco">Menor preço</SelectItem>
+              <SelectItem value="maior-preco">Maior preço</SelectItem>
             </SelectContent>
           </Select>
           <div className="relative">

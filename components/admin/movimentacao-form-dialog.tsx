@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState, useEffect, useRef, useState } from 'react'
+import { useActionState, useEffect, useMemo, useRef, useState } from 'react'
 import { useFormStatus } from 'react-dom'
 import { ArrowDownToLine, ArrowUpFromLine } from 'lucide-react'
 import { toast } from 'sonner'
@@ -21,6 +21,9 @@ import type { Produto } from '@/lib/types'
 
 const initialState: MovimentacaoFormState = { error: null, success: false }
 
+const selectClass =
+  'flex h-11 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 sm:h-9 sm:text-sm'
+
 function SubmitButton() {
   const { pending } = useFormStatus()
   return (
@@ -34,7 +37,18 @@ export function MovimentacaoFormDialog({ produtos }: { produtos: Produto[] }) {
   const [state, formAction] = useActionState(registrarMovimentacaoAction, initialState)
   const [open, setOpen] = useState(false)
   const [tipo, setTipo] = useState<'entrada' | 'saida'>('entrada')
+  const [produtoId, setProdutoId] = useState('')
+  const [tamanho, setTamanho] = useState('')
   const formRef = useRef<HTMLFormElement>(null)
+
+  const produtoSelecionado = useMemo(
+    () => produtos.find((p) => p.id === produtoId) ?? null,
+    [produtos, produtoId],
+  )
+  const tamanhosDoProduto = useMemo(
+    () => (produtoSelecionado?.tamanhos ?? []).slice().sort((a, b) => Number(a.tamanho) - Number(b.tamanho)),
+    [produtoSelecionado],
+  )
 
   useEffect(() => {
     if (state.success) {
@@ -42,6 +56,8 @@ export function MovimentacaoFormDialog({ produtos }: { produtos: Produto[] }) {
       setOpen(false)
       formRef.current?.reset()
       setTipo('entrada')
+      setProdutoId('')
+      setTamanho('')
     } else if (state.error) {
       toast.error(state.error)
     }
@@ -90,12 +106,37 @@ export function MovimentacaoFormDialog({ produtos }: { produtos: Produto[] }) {
               id="produto_id"
               name="produto_id"
               required
-              className="flex h-11 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 sm:h-9 sm:text-sm"
+              value={produtoId}
+              onChange={(e) => {
+                setProdutoId(e.target.value)
+                setTamanho('')
+              }}
+              className={selectClass}
             >
               <option value="">Selecione um produto</option>
               {produtos.map((produto) => (
                 <option key={produto.id} value={produto.id}>
-                  {produto.nome} · {produto.time} · Tam. {produto.tamanho} (estoque: {produto.estoque_atual})
+                  {produto.nome} · {produto.time}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="tamanho">Tamanho</Label>
+            <select
+              id="tamanho"
+              name="tamanho"
+              required
+              value={tamanho}
+              onChange={(e) => setTamanho(e.target.value)}
+              disabled={!produtoSelecionado}
+              className={selectClass}
+            >
+              <option value="">{produtoSelecionado ? 'Selecione o tamanho' : 'Escolha um produto primeiro'}</option>
+              {tamanhosDoProduto.map((t) => (
+                <option key={t.id} value={t.tamanho}>
+                  Tam. {t.tamanho} (estoque: {t.estoque_atual})
                 </option>
               ))}
             </select>

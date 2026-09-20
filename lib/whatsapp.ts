@@ -19,3 +19,10 @@ export function buildWhatsAppOrderUrl(itens: ItemVenda[], total: number) {
   const encoded = encodeURIComponent(mensagem)
   return phone ? `https://wa.me/${phone}?text=${encoded}` : `https://wa.me/?text=${encoded}`
 }
+
+export function buildWhatsAppContactUrl(mensagem?: string) {
+  const phone = (process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? '').replace(/\D/g, '')
+  const texto = mensagem ?? 'Olá! Tenho uma dúvida sobre os conjuntos.'
+  const encoded = encodeURIComponent(texto)
+  return phone ? `https://wa.me/${phone}?text=${encoded}` : `https://wa.me/?text=${encoded}`
+}

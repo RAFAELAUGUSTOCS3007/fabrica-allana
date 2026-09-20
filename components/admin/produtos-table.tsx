@@ -47,16 +47,20 @@ export function ProdutosTable({ produtos }: { produtos: Produto[] }) {
           <TableRow>
             <TableHead className="w-14"></TableHead>
             <TableHead>Produto</TableHead>
-            <TableHead>Tamanho / Cor</TableHead>
+            <TableHead>Tamanhos / Cor</TableHead>
             <TableHead className="text-right">Preço atacado</TableHead>
-            <TableHead className="text-right">Estoque</TableHead>
+            <TableHead className="text-right">Estoque total</TableHead>
             <TableHead>Ativo</TableHead>
             <TableHead className="text-right">Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {produtos.map((produto) => {
-            const isLow = produto.estoque_atual <= produto.estoque_minimo
+            const tamanhos = (produto.tamanhos ?? [])
+              .slice()
+              .sort((a, b) => Number(a.tamanho) - Number(b.tamanho))
+            const estoqueTotal = tamanhos.reduce((sum, t) => sum + t.estoque_atual, 0)
+            const algumBaixo = tamanhos.some((t) => t.estoque_atual <= t.estoque_minimo)
             return (
               <TableRow key={produto.id}>
                 <TableCell>
@@ -78,12 +82,26 @@ export function ProdutosTable({ produtos }: { produtos: Produto[] }) {
                   </p>
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground">
-                  {produto.tamanho}
-                  {produto.cor ? ` · ${produto.cor}` : ''}
+                  <div className="flex flex-wrap gap-1">
+                    {tamanhos.length === 0 ? (
+                      <span>—</span>
+                    ) : (
+                      tamanhos.map((t) => (
+                        <span
+                          key={t.id}
+                          className="inline-flex h-6 min-w-6 items-center justify-center rounded border border-border px-1 text-xs font-medium"
+                          title={`Tam. ${t.tamanho}: ${t.estoque_atual} un.`}
+                        >
+                          {t.tamanho}
+                        </span>
+                      ))
+                    )}
+                  </div>
+                  {produto.cor ? <span className="mt-1 block text-xs">{produto.cor}</span> : null}
                 </TableCell>
                 <TableCell className="text-right font-medium">{formatBRL(produto.preco_atacado)}</TableCell>
                 <TableCell className="text-right">
-                  <Badge variant={isLow ? 'destructive' : 'secondary'}>{produto.estoque_atual} un.</Badge>
+                  <Badge variant={algumBaixo ? 'destructive' : 'secondary'}>{estoqueTotal} un.</Badge>
                 </TableCell>
                 <TableCell>
                   <Switch

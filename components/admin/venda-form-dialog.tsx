@@ -21,6 +21,9 @@ import type { ItemVenda, Produto } from '@/lib/types'
 
 const initialState: VendaFormState = { error: null, success: false }
 
+const selectClass =
+  'flex h-11 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 sm:h-9 sm:text-sm'
+
 function formatBRL(value: number) {
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 }
@@ -39,10 +42,17 @@ export function VendaFormDialog({ produtos }: { produtos: Produto[] }) {
   const [open, setOpen] = useState(false)
   const [itens, setItens] = useState<ItemVenda[]>([])
   const [produtoId, setProdutoId] = useState('')
+  const [tamanho, setTamanho] = useState('')
   const [quantidade, setQuantidade] = useState('1')
   const formRef = useRef<HTMLFormElement>(null)
 
   const total = useMemo(() => itens.reduce((sum, item) => sum + item.quantidade * item.preco_unitario, 0), [itens])
+
+  const produtoSelecionado = useMemo(() => produtos.find((p) => p.id === produtoId) ?? null, [produtos, produtoId])
+  const tamanhosDoProduto = useMemo(
+    () => (produtoSelecionado?.tamanhos ?? []).slice().sort((a, b) => Number(a.tamanho) - Number(b.tamanho)),
+    [produtoSelecionado],
+  )
 
   useEffect(() => {
     if (state.success) {
@@ -57,9 +67,10 @@ export function VendaFormDialog({ produtos }: { produtos: Produto[] }) {
 
   function handleAddItem() {
     const produto = produtos.find((p) => p.id === produtoId)
+    const variacao = produto?.tamanhos?.find((t) => t.tamanho === tamanho)
     const qtd = Number(quantidade)
-    if (!produto || !qtd || qtd <= 0) {
-      toast.error('Selecione um produto e uma quantidade válida.')
+    if (!produto || !variacao || !qtd || qtd <= 0) {
+      toast.error('Selecione produto, tamanho e uma quantidade válida.')
       return
     }
     setItens((prev) => [
@@ -68,12 +79,13 @@ export function VendaFormDialog({ produtos }: { produtos: Produto[] }) {
         produto_id: produto.id,
         nome: produto.nome,
         time: produto.time,
-        tamanho: produto.tamanho,
+        tamanho: variacao.tamanho,
         quantidade: qtd,
         preco_unitario: produto.preco_atacado,
       },
     ])
     setProdutoId('')
+    setTamanho('')
     setQuantidade('1')
   }
 
@@ -90,16 +102,32 @@ export function VendaFormDialog({ produtos }: { produtos: Produto[] }) {
         </DialogHeader>
 
         <div className="flex flex-col gap-3 rounded-md border border-border p-3">
+          <select
+            value={produtoId}
+            onChange={(e) => {
+              setProdutoId(e.target.value)
+              setTamanho('')
+            }}
+            className={selectClass}
+          >
+            <option value="">Selecione um produto</option>
+            {produtos.map((produto) => (
+              <option key={produto.id} value={produto.id}>
+                {produto.nome} · {produto.time}
+              </option>
+            ))}
+          </select>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_auto]">
             <select
-              value={produtoId}
-              onChange={(e) => setProdutoId(e.target.value)}
-              className="flex h-11 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 sm:h-9 sm:text-sm"
+              value={tamanho}
+              onChange={(e) => setTamanho(e.target.value)}
+              disabled={!produtoSelecionado}
+              className={selectClass}
             >
-              <option value="">Selecione um produto</option>
-              {produtos.map((produto) => (
-                <option key={produto.id} value={produto.id}>
-                  {produto.nome} · {produto.time} · Tam. {produto.tamanho} (estoque: {produto.estoque_atual})
+              <option value="">{produtoSelecionado ? 'Selecione o tamanho' : 'Escolha um produto primeiro'}</option>
+              {tamanhosDoProduto.map((t) => (
+                <option key={t.id} value={t.tamanho}>
+                  Tam. {t.tamanho} (estoque: {t.estoque_atual})
                 </option>
               ))}
             </select>
@@ -121,7 +149,7 @@ export function VendaFormDialog({ produtos }: { produtos: Produto[] }) {
           <div className="flex flex-col gap-2">
             {itens.map((item, index) => (
               <div
-                key={`${item.produto_id}-${index}`}
+                key={`${item.produto_id}-${item.tamanho}-${index}`}
                 className="flex items-center justify-between gap-2 rounded-md border border-border px-3 py-2 text-sm"
               >
                 <div className="min-w-0">

@@ -6,6 +6,7 @@ import { createServiceClient } from '@/lib/supabase/service'
 
 const movimentacaoSchema = z.object({
   produto_id: z.string().uuid('Selecione um produto.'),
+  tamanho: z.string().trim().min(1, 'Selecione o tamanho.'),
   tipo: z.enum(['entrada', 'saida']),
   quantidade: z.coerce.number().int().positive('Informe uma quantidade válida.'),
   motivo: z.string().trim().optional(),
@@ -19,6 +20,7 @@ export async function registrarMovimentacaoAction(
 ): Promise<MovimentacaoFormState> {
   const parsed = movimentacaoSchema.safeParse({
     produto_id: formData.get('produto_id'),
+    tamanho: formData.get('tamanho'),
     tipo: formData.get('tipo'),
     quantidade: formData.get('quantidade'),
     motivo: formData.get('motivo') || undefined,
@@ -28,29 +30,30 @@ export async function registrarMovimentacaoAction(
     return { error: parsed.error.issues[0]?.message ?? 'Dados inválidos.', success: false }
   }
 
-  const { produto_id, tipo, quantidade, motivo } = parsed.data
+  const { produto_id, tamanho, tipo, quantidade, motivo } = parsed.data
   const supabase = createServiceClient()
 
-  const { data: produto, error: produtoError } = await supabase
-    .from('produtos')
+  const { data: variacao, error: variacaoError } = await supabase
+    .from('produto_tamanhos')
     .select('id, estoque_atual')
-    .eq('id', produto_id)
-    .single()
+    .eq('produto_id', produto_id)
+    .eq('tamanho', tamanho)
+    .maybeSingle()
 
-  if (produtoError || !produto) {
-    return { error: 'Produto não encontrado.', success: false }
+  if (variacaoError || !variacao) {
+    return { error: 'Variação de tamanho não encontrada.', success: false }
   }
 
-  if (tipo === 'saida' && quantidade > produto.estoque_atual) {
-    return { error: `Estoque insuficiente. Disponível: ${produto.estoque_atual} un.`, success: false }
+  if (tipo === 'saida' && quantidade > variacao.estoque_atual) {
+    return { error: `Estoque insuficiente. Disponível: ${variacao.estoque_atual} un.`, success: false }
   }
 
-  const novoEstoque = tipo === 'entrada' ? produto.estoque_atual + quantidade : produto.estoque_atual - quantidade
+  const novoEstoque = tipo === 'entrada' ? variacao.estoque_atual + quantidade : variacao.estoque_atual - quantidade
 
   const { error: updateError } = await supabase
-    .from('produtos')
+    .from('produto_tamanhos')
     .update({ estoque_atual: novoEstoque })
-    .eq('id', produto_id)
+    .eq('id', variacao.id)
 
   if (updateError) {
     console.log('[v0] registrarMovimentacaoAction update error:', updateError.message)
@@ -59,6 +62,7 @@ export async function registrarMovimentacaoAction(
 
   const { error: movError } = await supabase.from('movimentacoes_estoque').insert({
     produto_id,
+    tamanho,
     tipo,
     quantidade,
     motivo: motivo || null,

@@ -13,13 +13,18 @@ export default async function AdminVendasPage() {
   const [produtosResult, vendasResult] = await Promise.all([
     supabase
       .from('produtos')
-      .select('id, nome, time, tamanho, cor, categoria, preco_atacado, estoque_atual, estoque_minimo, ativo')
-      .gt('estoque_atual', 0)
+      .select(
+        'id, nome, time, cor, categoria, preco_atacado, ativo, produto_tamanhos(id, produto_id, tamanho, estoque_atual, estoque_minimo)',
+      )
       .order('nome', { ascending: true }),
     supabase.from('vendas').select('id, itens, total, data, cliente').order('data', { ascending: false }).limit(50),
   ])
 
-  const produtos = (produtosResult.data ?? []) as Produto[]
+  const produtos = ((produtosResult.data ?? []) as unknown as (Produto & {
+    produto_tamanhos: Produto['tamanhos']
+  })[])
+    .map((p) => ({ ...p, tamanhos: (p.produto_tamanhos ?? []).filter((t) => t.estoque_atual > 0) }))
+    .filter((p) => (p.tamanhos ?? []).length > 0) as Produto[]
   const vendas = (vendasResult.data ?? []) as Venda[]
 
   return (

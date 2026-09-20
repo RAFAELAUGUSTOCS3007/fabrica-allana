@@ -17,20 +17,30 @@ export default async function AdminDashboardPage() {
   startOfMonth.setHours(0, 0, 0, 0)
 
   const [produtosResult, vendasMesResult, vendasRecentesResult] = await Promise.all([
-    supabase.from('produtos').select('id, nome, time, tamanho, estoque_atual, estoque_minimo, ativo'),
+    supabase
+      .from('produtos')
+      .select('id, nome, time, ativo, produto_tamanhos(id, tamanho, estoque_atual, estoque_minimo)'),
     supabase.from('vendas').select('id, total, data').gte('data', startOfMonth.toISOString()),
     supabase.from('vendas').select('id, itens, total, data, cliente').order('data', { ascending: false }).limit(5),
   ])
 
-  const produtos = (produtosResult.data ?? []) as Pick<
-    Produto,
-    'id' | 'nome' | 'time' | 'tamanho' | 'estoque_atual' | 'estoque_minimo' | 'ativo'
-  >[]
+  const produtos = (produtosResult.data ?? []) as unknown as {
+    id: string
+    nome: string
+    time: string
+    ativo: boolean
+    produto_tamanhos: { id: string; tamanho: string; estoque_atual: number; estoque_minimo: number }[]
+  }[]
   const vendasMes = vendasMesResult.data ?? []
   const vendasRecentes = (vendasRecentesResult.data ?? []) as Venda[]
 
   const produtosAtivos = produtos.filter((p) => p.ativo)
-  const estoqueBaixo = produtos.filter((p) => p.estoque_atual <= p.estoque_minimo)
+  const estoqueBaixo = produtos
+    .flatMap((p) =>
+      (p.produto_tamanhos ?? [])
+        .filter((t) => t.estoque_atual <= t.estoque_minimo)
+        .map((t) => ({ id: t.id, nome: p.nome, time: p.time, tamanho: t.tamanho, estoque_atual: t.estoque_atual })),
+    )
   const totalVendidoMes = vendasMes.reduce((sum, v) => sum + Number(v.total ?? 0), 0)
 
   const stats = [

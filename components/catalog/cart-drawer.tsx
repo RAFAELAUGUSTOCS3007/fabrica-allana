@@ -44,7 +44,10 @@ export function CartDrawer() {
           ) : (
             <div className="flex flex-col gap-3 py-2">
               {itens.map((item) => (
-                <div key={item.produto_id} className="flex items-start justify-between gap-3 border-b border-border pb-3">
+                <div
+                  key={`${item.produto_id}-${item.tamanho}`}
+                  className="flex items-start justify-between gap-3 border-b border-border pb-3"
+                >
                   <div className="flex-1">
                     <p className="text-sm font-medium">{item.nome}</p>
                     <p className="text-xs text-muted-foreground">
@@ -56,7 +59,7 @@ export function CartDrawer() {
                     <button
                       type="button"
                       aria-label="Remover item"
-                      onClick={() => removerItem(item.produto_id)}
+                      onClick={() => removerItem(item.produto_id, item.tamanho)}
                       className="text-muted-foreground hover:text-destructive"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -66,7 +69,7 @@ export function CartDrawer() {
                         type="button"
                         aria-label="Diminuir quantidade"
                         className="flex h-7 w-7 items-center justify-center text-muted-foreground hover:text-foreground"
-                        onClick={() => atualizarQuantidade(item.produto_id, item.quantidade - 1)}
+                        onClick={() => atualizarQuantidade(item.produto_id, item.tamanho, item.quantidade - 1)}
                       >
                         <Minus className="h-3 w-3" />
                       </button>
@@ -75,7 +78,7 @@ export function CartDrawer() {
                         type="button"
                         aria-label="Aumentar quantidade"
                         className="flex h-7 w-7 items-center justify-center text-muted-foreground hover:text-foreground"
-                        onClick={() => atualizarQuantidade(item.produto_id, item.quantidade + 1)}
+                        onClick={() => atualizarQuantidade(item.produto_id, item.tamanho, item.quantidade + 1)}
                       >
                         <Plus className="h-3 w-3" />
                       </button>

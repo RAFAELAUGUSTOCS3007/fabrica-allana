@@ -6,24 +6,51 @@ import { CatalogFilters, type Filtros } from '@/components/catalog/catalog-filte
 import { ProductCard } from '@/components/catalog/product-card'
 import type { Produto } from '@/lib/types'
 
-const filtrosIniciais: Filtros = { busca: '', time: 'todos', tamanho: 'todos', categoria: 'todos' }
+const filtrosIniciais: Filtros = { busca: '', time: 'todos', tamanho: 'todos', categoria: 'todos', ordenar: 'recentes' }
+
+function estoqueTotal(produto: Produto) {
+  return (produto.tamanhos ?? []).reduce((sum, t) => sum + t.estoque_atual, 0)
+}
 
 export function CatalogClient({ produtos }: { produtos: Produto[] }) {
   const [filtros, setFiltros] = useState<Filtros>(filtrosIniciais)
 
   const times = useMemo(() => Array.from(new Set(produtos.map((p) => p.time))).sort(), [produtos])
-  const tamanhos = useMemo(() => Array.from(new Set(produtos.map((p) => p.tamanho))).sort(), [produtos])
+  const tamanhos = useMemo(
+    () =>
+      Array.from(
+        new Set(produtos.flatMap((p) => (p.tamanhos ?? []).map((t) => t.tamanho))),
+      ).sort((a, b) => Number(a) - Number(b)),
+    [produtos],
+  )
   const categorias = useMemo(() => Array.from(new Set(produtos.map((p) => p.categoria))).sort(), [produtos])
 
   const produtosFiltrados = useMemo(() => {
     const busca = filtros.busca.trim().toLowerCase()
-    return produtos.filter((produto) => {
+    const filtrados = produtos.filter((produto) => {
       if (busca && !`${produto.nome} ${produto.time}`.toLowerCase().includes(busca)) return false
       if (filtros.time !== 'todos' && produto.time !== filtros.time) return false
-      if (filtros.tamanho !== 'todos' && produto.tamanho !== filtros.tamanho) return false
+      if (
+        filtros.tamanho !== 'todos' &&
+        !(produto.tamanhos ?? []).some((t) => t.tamanho === filtros.tamanho && t.estoque_atual > 0)
+      )
+        return false
       if (filtros.categoria !== 'todos' && produto.categoria !== filtros.categoria) return false
       return true
     })
+
+    const ordenados = [...filtrados]
+    if (filtros.ordenar === 'menor-preco') {
+      ordenados.sort((a, b) => a.preco_atacado - b.preco_atacado)
+    } else if (filtros.ordenar === 'maior-preco') {
+      ordenados.sort((a, b) => b.preco_atacado - a.preco_atacado)
+    } else {
+      ordenados.sort((a, b) => (a.criado_em < b.criado_em ? 1 : -1))
+    }
+
+    // Produtos esgotados vão para o fim
+    ordenados.sort((a, b) => (estoqueTotal(a) > 0 ? 0 : 1) - (estoqueTotal(b) > 0 ? 0 : 1))
+    return ordenados
   }, [produtos, filtros])
 
   return (

@@ -10,31 +10,45 @@ export default async function AdminEstoquePage() {
   const [produtosResult, movimentacoesResult] = await Promise.all([
     supabase
       .from('produtos')
-      .select('id, nome, time, tamanho, cor, categoria, estoque_atual, estoque_minimo, ativo')
+      .select(
+        'id, nome, time, cor, categoria, ativo, produto_tamanhos(id, produto_id, tamanho, estoque_atual, estoque_minimo)',
+      )
       .order('nome', { ascending: true }),
     supabase
       .from('movimentacoes_estoque')
-      .select('id, produto_id, tipo, quantidade, motivo, data')
+      .select('id, produto_id, tamanho, tipo, quantidade, motivo, data')
       .order('data', { ascending: false })
       .limit(30),
   ])
 
-  const produtos = (produtosResult.data ?? []) as Produto[]
+  const produtos = ((produtosResult.data ?? []) as unknown as (Produto & {
+    produto_tamanhos: Produto['tamanhos']
+  })[]).map((p) => ({ ...p, tamanhos: p.produto_tamanhos ?? [] })) as Produto[]
   const movimentacoes = (movimentacoesResult.data ?? []) as MovimentacaoEstoque[]
   const produtosPorId = new Map(produtos.map((p) => [p.id, p]))
+
+  const linhas = produtos
+    .flatMap((produto) =>
+      (produto.tamanhos ?? []).map((t) => ({ produto, tamanho: t })),
+    )
+    .sort((a, b) => {
+      const nome = a.produto.nome.localeCompare(b.produto.nome)
+      if (nome !== 0) return nome
+      return Number(a.tamanho.tamanho) - Number(b.tamanho.tamanho)
+    })
 
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Estoque</h1>
-          <p className="text-sm text-muted-foreground">Controle entradas e saídas de cada produto.</p>
+          <p className="text-sm text-muted-foreground">Controle entradas e saídas por tamanho de cada produto.</p>
         </div>
         <MovimentacaoFormDialog produtos={produtos} />
       </div>
 
       <div>
-        <h2 className="mb-3 text-sm font-semibold text-muted-foreground">Estoque atual por produto</h2>
+        <h2 className="mb-3 text-sm font-semibold text-muted-foreground">Estoque atual por tamanho</h2>
         <div className="overflow-hidden rounded-lg border border-border">
           <Table>
             <TableHeader>
@@ -46,27 +60,35 @@ export default async function AdminEstoquePage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {produtos.map((produto) => {
-                const isLow = produto.estoque_atual <= produto.estoque_minimo
-                return (
-                  <TableRow key={produto.id}>
-                    <TableCell>
-                      <p className="font-medium">{produto.nome}</p>
-                      <p className="text-xs text-muted-foreground">{produto.time}</p>
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
-                      {produto.tamanho}
-                      {produto.cor ? ` · ${produto.cor}` : ''}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Badge variant={isLow ? 'destructive' : 'secondary'}>{produto.estoque_atual} un.</Badge>
-                    </TableCell>
-                    <TableCell className="text-right text-sm text-muted-foreground">
-                      {produto.estoque_minimo} un.
-                    </TableCell>
-                  </TableRow>
-                )
-              })}
+              {linhas.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center text-sm text-muted-foreground">
+                    Nenhum produto cadastrado ainda.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                linhas.map(({ produto, tamanho }) => {
+                  const isLow = tamanho.estoque_atual <= tamanho.estoque_minimo
+                  return (
+                    <TableRow key={tamanho.id}>
+                      <TableCell>
+                        <p className="font-medium">{produto.nome}</p>
+                        <p className="text-xs text-muted-foreground">{produto.time}</p>
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        Tam. {tamanho.tamanho}
+                        {produto.cor ? ` · ${produto.cor}` : ''}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Badge variant={isLow ? 'destructive' : 'secondary'}>{tamanho.estoque_atual} un.</Badge>
+                      </TableCell>
+                      <TableCell className="text-right text-sm text-muted-foreground">
+                        {tamanho.estoque_minimo} un.
+                      </TableCell>
+                    </TableRow>
+                  )
+                })
+              )}
             </TableBody>
           </Table>
         </div>
@@ -100,7 +122,10 @@ export default async function AdminEstoquePage() {
                       <TableCell className="text-sm text-muted-foreground">
                         {new Date(mov.data).toLocaleDateString('pt-BR')}
                       </TableCell>
-                      <TableCell className="text-sm">{produto ? `${produto.nome} (${produto.time})` : '—'}</TableCell>
+                      <TableCell className="text-sm">
+                        {produto ? `${produto.nome} (${produto.time})` : '—'}
+                        {mov.tamanho ? ` · Tam. ${mov.tamanho}` : ''}
+                      </TableCell>
                       <TableCell>
                         <Badge variant={mov.tipo === 'entrada' ? 'secondary' : 'outline'}>
                           {mov.tipo === 'entrada' ? 'Entrada' : 'Saída'}

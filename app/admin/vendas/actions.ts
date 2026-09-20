@@ -43,32 +43,38 @@ export async function registrarVendaAction(
   const { itens, cliente } = parsed.data
   const supabase = createServiceClient()
 
-  const produtoIds = itens.map((item) => item.produto_id)
-  const { data: produtos, error: produtosError } = await supabase
-    .from('produtos')
-    .select('id, estoque_atual')
-    .in('id', produtoIds)
+  const produtoIds = Array.from(new Set(itens.map((item) => item.produto_id)))
+  const { data: variacoes, error: variacoesError } = await supabase
+    .from('produto_tamanhos')
+    .select('id, produto_id, tamanho, estoque_atual')
+    .in('produto_id', produtoIds)
 
-  if (produtosError || !produtos) {
+  if (variacoesError || !variacoes) {
     return { error: 'Não foi possível validar o estoque.', success: false }
   }
 
-  const estoquePorId = new Map(produtos.map((p) => [p.id, p.estoque_atual]))
+  // Chave composta produto_id + tamanho para estoque e id da variação
+  const chave = (produtoId: string, tamanho: string) => `${produtoId}::${tamanho}`
+  const estoquePorChave = new Map(variacoes.map((v) => [chave(v.produto_id, v.tamanho), v.estoque_atual]))
+  const idPorChave = new Map(variacoes.map((v) => [chave(v.produto_id, v.tamanho), v.id]))
 
-  // Agrega a quantidade por produto para validar e dar baixa considerando
-  // linhas repetidas do mesmo produto (evita venda acima do estoque real).
-  const quantidadePorId = new Map<string, number>()
-  const nomePorId = new Map<string, string>()
+  // Agrega quantidade por produto+tamanho para validar linhas repetidas
+  const quantidadePorChave = new Map<string, number>()
+  const rotuloPorChave = new Map<string, string>()
   for (const item of itens) {
-    quantidadePorId.set(item.produto_id, (quantidadePorId.get(item.produto_id) ?? 0) + item.quantidade)
-    nomePorId.set(item.produto_id, item.nome)
+    const k = chave(item.produto_id, item.tamanho)
+    quantidadePorChave.set(k, (quantidadePorChave.get(k) ?? 0) + item.quantidade)
+    rotuloPorChave.set(k, `${item.nome} (tam. ${item.tamanho})`)
   }
 
-  for (const [id, qtd] of quantidadePorId) {
-    const disponivel = estoquePorId.get(id) ?? 0
+  for (const [k, qtd] of quantidadePorChave) {
+    const disponivel = estoquePorChave.get(k)
+    if (disponivel === undefined) {
+      return { error: `Variação não encontrada para "${rotuloPorChave.get(k) ?? 'produto'}".`, success: false }
+    }
     if (qtd > disponivel) {
       return {
-        error: `Estoque insuficiente para "${nomePorId.get(id) ?? 'produto'}". Disponível: ${disponivel} un.`,
+        error: `Estoque insuficiente para "${rotuloPorChave.get(k)}". Disponível: ${disponivel} un.`,
         success: false,
       }
     }
@@ -87,17 +93,23 @@ export async function registrarVendaAction(
     return { error: 'Não foi possível registrar a venda.', success: false }
   }
 
-  for (const item of itens) {
-    const disponivel = estoquePorId.get(item.produto_id) ?? 0
-    await supabase
-      .from('produtos')
-      .update({ estoque_atual: disponivel - item.quantidade })
-      .eq('id', item.produto_id)
+  // Dá baixa por produto+tamanho usando o total agregado
+  for (const [k, qtd] of quantidadePorChave) {
+    const variacaoId = idPorChave.get(k)
+    const disponivel = estoquePorChave.get(k) ?? 0
+    if (!variacaoId) continue
 
+    await supabase
+      .from('produto_tamanhos')
+      .update({ estoque_atual: disponivel - qtd })
+      .eq('id', variacaoId)
+
+    const [produtoId, tamanho] = k.split('::')
     await supabase.from('movimentacoes_estoque').insert({
-      produto_id: item.produto_id,
+      produto_id: produtoId,
+      tamanho,
       tipo: 'saida',
-      quantidade: item.quantidade,
+      quantidade: qtd,
       motivo: 'Venda registrada',
     })
   }
