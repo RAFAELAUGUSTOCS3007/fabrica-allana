@@ -8,7 +8,7 @@ export default async function AdminProdutosPage() {
   const { data, error } = await supabase
     .from('produtos')
     .select(
-      'id, nome, time, tamanho, cor, categoria, preco_atacado, custo, estoque_atual, estoque_minimo, foto_url, ativo, criado_em',
+      'id, nome, time, cor, categoria, preco_atacado, custo, foto_url, ativo, criado_em, produto_tamanhos(id, produto_id, tamanho, estoque_atual, estoque_minimo)',
     )
     .order('criado_em', { ascending: false })
 
@@ -16,7 +16,9 @@ export default async function AdminProdutosPage() {
     console.log('[v0] AdminProdutosPage error:', error.message)
   }
 
-  const produtos = (data ?? []) as Produto[]
+  const produtos = ((data ?? []) as unknown as (Produto & {
+    produto_tamanhos: Produto['tamanhos']
+  })[]).map((p) => ({ ...p, tamanhos: p.produto_tamanhos ?? [] })) as Produto[]
 
   return (
     <div className="flex flex-col gap-6">

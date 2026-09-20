@@ -1,13 +1,14 @@
 'use client'
 
-import { useActionState, useEffect, useRef, useState } from 'react'
+import { useActionState, useEffect, useMemo, useRef, useState } from 'react'
 import { useFormStatus } from 'react-dom'
-import { Plus, Pencil, ImagePlus, Copy } from 'lucide-react'
+import { Plus, Pencil, ImagePlus, Copy, Loader2 } from 'lucide-react'
+import { upload } from '@vercel/blob/client'
 import { toast } from 'sonner'
+import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
 import {
   Dialog,
@@ -23,10 +24,15 @@ import type { Produto } from '@/lib/types'
 
 const initialState: ProdutoFormState = { error: null, success: false }
 
-function SubmitButton({ isEdit }: { isEdit: boolean }) {
+const TAMANHOS_DISPONIVEIS = Array.from({ length: 15 }, (_, i) => String(i)) // 0 a 14
+const ESTOQUE_MINIMO_PADRAO = 3
+
+type TamanhoEstado = { tamanho: string; ativo: boolean; estoque_atual: number; estoque_minimo: number }
+
+function SubmitButton({ isEdit, disabled }: { isEdit: boolean; disabled?: boolean }) {
   const { pending } = useFormStatus()
   return (
-    <Button type="submit" disabled={pending}>
+    <Button type="submit" disabled={pending || disabled}>
       {pending ? 'Salvando...' : isEdit ? 'Salvar alterações' : 'Cadastrar produto'}
     </Button>
   )
@@ -78,6 +84,19 @@ function CurrencyField({
   )
 }
 
+function buildEstadoInicial(base?: Produto): TamanhoEstado[] {
+  const existentes = new Map((base?.tamanhos ?? []).map((t) => [t.tamanho, t]))
+  return TAMANHOS_DISPONIVEIS.map((tamanho) => {
+    const existente = existentes.get(tamanho)
+    return {
+      tamanho,
+      ativo: Boolean(existente),
+      estoque_atual: existente?.estoque_atual ?? 0,
+      estoque_minimo: existente?.estoque_minimo ?? ESTOQUE_MINIMO_PADRAO,
+    }
+  })
+}
+
 export function ProdutoFormDialog({ produto, duplicarDe }: { produto?: Produto; duplicarDe?: Produto }) {
   const isEdit = Boolean(produto)
   const isDuplicado = Boolean(duplicarDe) && !isEdit
@@ -86,7 +105,27 @@ export function ProdutoFormDialog({ produto, duplicarDe }: { produto?: Produto; 
   const [state, formAction] = useActionState(action, initialState)
   const [open, setOpen] = useState(false)
   const [preview, setPreview] = useState<string | null>(base?.foto_url ?? null)
+  const [fotoUrl, setFotoUrl] = useState<string | null>(base?.foto_url ?? null)
+  const [uploading, setUploading] = useState(false)
+  // Na duplicação, começa sem tamanhos selecionados (nova variação); em edição usa os existentes
+  const [tamanhos, setTamanhos] = useState<TamanhoEstado[]>(() =>
+    buildEstadoInicial(isDuplicado ? undefined : base),
+  )
   const formRef = useRef<HTMLFormElement>(null)
+
+  const tamanhosAtivos = useMemo(() => tamanhos.filter((t) => t.ativo), [tamanhos])
+
+  const tamanhosPayload = useMemo(
+    () =>
+      JSON.stringify(
+        tamanhosAtivos.map((t) => ({
+          tamanho: t.tamanho,
+          estoque_atual: t.estoque_atual,
+          estoque_minimo: t.estoque_minimo,
+        })),
+      ),
+    [tamanhosAtivos],
+  )
 
   useEffect(() => {
     if (state.success) {
@@ -94,10 +133,59 @@ export function ProdutoFormDialog({ produto, duplicarDe }: { produto?: Produto; 
       setOpen(false)
       formRef.current?.reset()
       setPreview(base?.foto_url ?? null)
+      setFotoUrl(base?.foto_url ?? null)
+      setTamanhos(buildEstadoInicial(isDuplicado ? undefined : base))
     } else if (state.error) {
       toast.error(state.error)
     }
-  }, [state, isEdit, base?.foto_url])
+  }, [state, isEdit, isDuplicado, base])
+
+  function toggleTamanho(tamanho: string) {
+    setTamanhos((prev) =>
+      prev.map((t) => (t.tamanho === tamanho ? { ...t, ativo: !t.ativo } : t)),
+    )
+  }
+
+  function setEstoque(tamanho: string, valor: number) {
+    setTamanhos((prev) =>
+      prev.map((t) => (t.tamanho === tamanho ? { ...t, estoque_atual: Math.max(0, valor) } : t)),
+    )
+  }
+
+  function setEstoqueMinimo(tamanho: string, valor: number) {
+    setTamanhos((prev) =>
+      prev.map((t) => (t.tamanho === tamanho ? { ...t, estoque_minimo: Math.max(0, valor) } : t)),
+    )
+  }
+
+  async function handleFotoChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('A imagem deve ter no máximo 10 MB.')
+      event.target.value = ''
+      return
+    }
+
+    setPreview(URL.createObjectURL(file))
+    setUploading(true)
+    try {
+      const extension = file.name.split('.').pop() || 'jpg'
+      const blob = await upload(`produtos/${crypto.randomUUID()}.${extension}`, file, {
+        access: 'public',
+        handleUploadUrl: '/api/upload',
+      })
+      setFotoUrl(blob.url)
+    } catch (err) {
+      console.log('[v0] foto upload error:', err)
+      toast.error('Não foi possível enviar a foto. Tente novamente.')
+      setPreview(base?.foto_url ?? null)
+      event.target.value = ''
+    } finally {
+      setUploading(false)
+    }
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -131,40 +219,42 @@ export function ProdutoFormDialog({ produto, duplicarDe }: { produto?: Produto; 
           <DialogTitle>{isEdit ? 'Editar produto' : isDuplicado ? 'Duplicar produto' : 'Novo produto'}</DialogTitle>
           <DialogDescription>
             {isEdit
-              ? 'Atualize as informações deste conjuntinho.'
+              ? 'Atualize as informações e o estoque por tamanho deste conjunto.'
               : isDuplicado
-                ? 'Os dados foram copiados. Preencha o tamanho e o estoque desta variação.'
-                : 'Cadastre um novo conjuntinho, camisa ou bermuda no catálogo.'}
+                ? 'Os dados foram copiados. Selecione os tamanhos e o estoque desta variação.'
+                : 'Cadastre um conjunto uma única vez e defina o estoque de cada tamanho.'}
           </DialogDescription>
         </DialogHeader>
         <form ref={formRef} action={formAction} className="flex flex-col gap-4">
           {isEdit && <input type="hidden" name="id" value={produto?.id} />}
-          {isDuplicado && duplicarDe?.foto_url && (
-            <input type="hidden" name="foto_url_existente" value={duplicarDe.foto_url} />
-          )}
+          <input type="hidden" name="foto_url" value={fotoUrl ?? ''} />
+          <input type="hidden" name="tamanhos" value={tamanhosPayload} />
 
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
-            <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-muted">
+            <div className="relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-muted">
               {preview ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={preview} alt="Pré-visualização do produto" className="h-full w-full object-cover" />
               ) : (
                 <ImagePlus className="h-6 w-6 text-muted-foreground" />
               )}
+              {uploading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-background/60">
+                  <Loader2 className="h-5 w-5 animate-spin text-foreground" />
+                </div>
+              )}
             </div>
             <div className="flex flex-1 flex-col gap-2">
               <Label htmlFor="foto">Foto do produto</Label>
               <Input
                 id="foto"
-                name="foto"
                 type="file"
                 accept="image/*"
+                disabled={uploading}
                 className={inputTouch}
-                onChange={(event) => {
-                  const file = event.target.files?.[0]
-                  if (file) setPreview(URL.createObjectURL(file))
-                }}
+                onChange={handleFotoChange}
               />
+              {uploading && <p className="text-xs text-muted-foreground">Enviando foto...</p>}
             </div>
           </div>
 
@@ -175,7 +265,7 @@ export function ProdutoFormDialog({ produto, duplicarDe }: { produto?: Produto; 
                 id="nome"
                 name="nome"
                 defaultValue={base?.nome}
-                placeholder="Conjuntinho Infantil"
+                placeholder="Conjunto Infantil"
                 className={inputTouch}
                 required
               />
@@ -201,18 +291,6 @@ export function ProdutoFormDialog({ produto, duplicarDe }: { produto?: Produto; 
             </div>
 
             <div className="flex flex-col gap-2">
-              <Label htmlFor="tamanho">Tamanho</Label>
-              <Input
-                id="tamanho"
-                name="tamanho"
-                defaultValue={isDuplicado ? '' : base?.tamanho}
-                placeholder="4"
-                className={inputTouch}
-                required
-              />
-            </div>
-
-            <div className="flex flex-col gap-2">
               <Label htmlFor="cor">Cor (opcional)</Label>
               <Input id="cor" name="cor" defaultValue={base?.cor ?? ''} placeholder="Vermelho" className={inputTouch} />
             </div>
@@ -231,33 +309,71 @@ export function ProdutoFormDialog({ produto, duplicarDe }: { produto?: Produto; 
               label="Custo de produção"
               defaultValue={isDuplicado ? '' : base?.custo ?? ''}
             />
+          </div>
 
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="estoque_atual">Estoque atual</Label>
-              <Input
-                id="estoque_atual"
-                name="estoque_atual"
-                type="number"
-                min="0"
-                defaultValue={isDuplicado ? '' : base?.estoque_atual ?? 0}
-                placeholder={isDuplicado ? '0' : undefined}
-                className={inputTouch}
-                required
-              />
+          <div className="flex flex-col gap-3 rounded-md border border-border p-3">
+            <div>
+              <p className="text-sm font-medium">Tamanhos e estoque</p>
+              <p className="text-xs text-muted-foreground">
+                Selecione os tamanhos disponíveis (0 ao 14) e informe o estoque de cada um.
+              </p>
             </div>
 
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="estoque_minimo">Estoque mínimo</Label>
-              <Input
-                id="estoque_minimo"
-                name="estoque_minimo"
-                type="number"
-                min="0"
-                defaultValue={base?.estoque_minimo ?? 3}
-                className={inputTouch}
-                required
-              />
+            <div className="flex flex-wrap gap-1.5">
+              {tamanhos.map((t) => (
+                <button
+                  key={t.tamanho}
+                  type="button"
+                  aria-pressed={t.ativo}
+                  onClick={() => toggleTamanho(t.tamanho)}
+                  className={cn(
+                    'flex h-9 min-w-9 items-center justify-center rounded-md border px-2 text-sm font-medium transition-colors',
+                    t.ativo
+                      ? 'border-primary bg-primary text-primary-foreground'
+                      : 'border-input text-foreground hover:border-primary',
+                  )}
+                >
+                  {t.tamanho}
+                </button>
+              ))}
             </div>
+
+            {tamanhosAtivos.length === 0 ? (
+              <p className="text-xs text-destructive">Selecione ao menos um tamanho.</p>
+            ) : (
+              <div className="flex flex-col gap-2">
+                <div className="grid grid-cols-[2.5rem_1fr_1fr] items-center gap-2 px-1 text-xs font-medium text-muted-foreground">
+                  <span>Tam.</span>
+                  <span>Estoque</span>
+                  <span>Mínimo</span>
+                </div>
+                {tamanhosAtivos.map((t) => (
+                  <div key={t.tamanho} className="grid grid-cols-[2.5rem_1fr_1fr] items-center gap-2">
+                    <span className="flex h-9 w-10 items-center justify-center rounded-md bg-muted text-sm font-semibold">
+                      {t.tamanho}
+                    </span>
+                    <Input
+                      type="number"
+                      min="0"
+                      inputMode="numeric"
+                      aria-label={`Estoque do tamanho ${t.tamanho}`}
+                      value={t.estoque_atual}
+                      className={inputTouch}
+                      onChange={(e) => setEstoque(t.tamanho, Number.parseInt(e.target.value || '0', 10))}
+                    />
+                    <Input
+                      type="number"
+                      min="0"
+                      inputMode="numeric"
+                      aria-label={`Estoque mínimo do tamanho ${t.tamanho}`}
+                      value={t.estoque_minimo}
+                      className={inputTouch}
+                      onChange={(e) => setEstoqueMinimo(t.tamanho, Number.parseInt(e.target.value || '0', 10))}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="flex items-center justify-between gap-3 rounded-md border border-border px-3 py-3">
@@ -271,7 +387,7 @@ export function ProdutoFormDialog({ produto, duplicarDe }: { produto?: Produto; 
           {state.error && <p className="text-sm text-destructive">{state.error}</p>}
 
           <DialogFooter>
-            <SubmitButton isEdit={isEdit} />
+            <SubmitButton isEdit={isEdit} disabled={uploading || tamanhosAtivos.length === 0} />
           </DialogFooter>
         </form>
       </DialogContent>

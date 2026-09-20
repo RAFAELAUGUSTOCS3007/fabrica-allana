@@ -5,13 +5,17 @@ import type { ItemVenda, Produto } from '@/lib/types'
 
 const STORAGE_KEY = 'aa-sports-carrinho'
 
+function chaveItem(produtoId: string, tamanho: string) {
+  return `${produtoId}::${tamanho}`
+}
+
 type CartContextValue = {
   itens: ItemVenda[]
   totalItens: number
   total: number
-  adicionarItem: (produto: Produto, quantidade: number) => void
-  removerItem: (produtoId: string) => void
-  atualizarQuantidade: (produtoId: string, quantidade: number) => void
+  adicionarItem: (produto: Produto, tamanho: string, quantidade: number, precoUnitario?: number) => void
+  removerItem: (produtoId: string, tamanho: string) => void
+  atualizarQuantidade: (produtoId: string, tamanho: string, quantidade: number) => void
   limparCarrinho: () => void
   cartOpen: boolean
   setCartOpen: (open: boolean) => void
@@ -39,37 +43,47 @@ export function CartProvider({ children }: { children: ReactNode }) {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(itens))
   }, [itens, hydrated])
 
-  const adicionarItem = useCallback((produto: Produto, quantidade: number) => {
-    setItens((prev) => {
-      const existente = prev.find((item) => item.produto_id === produto.id)
-      if (existente) {
-        return prev.map((item) =>
-          item.produto_id === produto.id ? { ...item, quantidade: item.quantidade + quantidade } : item,
-        )
-      }
-      return [
-        ...prev,
-        {
-          produto_id: produto.id,
-          nome: produto.nome,
-          time: produto.time,
-          tamanho: produto.tamanho,
-          quantidade,
-          preco_unitario: produto.preco_atacado,
-        },
-      ]
-    })
+  const adicionarItem = useCallback(
+    (produto: Produto, tamanho: string, quantidade: number, precoUnitario?: number) => {
+      setItens((prev) => {
+        const chave = chaveItem(produto.id, tamanho)
+        const existente = prev.find((item) => chaveItem(item.produto_id, item.tamanho) === chave)
+        if (existente) {
+          return prev.map((item) =>
+            chaveItem(item.produto_id, item.tamanho) === chave
+              ? { ...item, quantidade: item.quantidade + quantidade }
+              : item,
+          )
+        }
+        return [
+          ...prev,
+          {
+            produto_id: produto.id,
+            nome: produto.nome,
+            time: produto.time,
+            tamanho,
+            quantidade,
+            preco_unitario: precoUnitario ?? produto.preco_atacado,
+          },
+        ]
+      })
+    },
+    [],
+  )
+
+  const removerItem = useCallback((produtoId: string, tamanho: string) => {
+    const chave = chaveItem(produtoId, tamanho)
+    setItens((prev) => prev.filter((item) => chaveItem(item.produto_id, item.tamanho) !== chave))
   }, [])
 
-  const removerItem = useCallback((produtoId: string) => {
-    setItens((prev) => prev.filter((item) => item.produto_id !== produtoId))
-  }, [])
-
-  const atualizarQuantidade = useCallback((produtoId: string, quantidade: number) => {
+  const atualizarQuantidade = useCallback((produtoId: string, tamanho: string, quantidade: number) => {
+    const chave = chaveItem(produtoId, tamanho)
     setItens((prev) =>
       quantidade <= 0
-        ? prev.filter((item) => item.produto_id !== produtoId)
-        : prev.map((item) => (item.produto_id === produtoId ? { ...item, quantidade } : item)),
+        ? prev.filter((item) => chaveItem(item.produto_id, item.tamanho) !== chave)
+        : prev.map((item) =>
+            chaveItem(item.produto_id, item.tamanho) === chave ? { ...item, quantidade } : item,
+          ),
     )
   }, [])
 
