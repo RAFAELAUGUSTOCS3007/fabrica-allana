@@ -26,13 +26,7 @@ export function ProductCard({ produto }: { produto: Produto }) {
     [produto.tamanhos],
   )
 
-  const estoqueTotal = useMemo(
-    () => (produto.tamanhos ?? []).reduce((sum, t) => sum + t.estoque_atual, 0),
-    [produto.tamanhos],
-  )
-
   const semEstoque = tamanhosComEstoque.length === 0
-  const estoqueBaixo = !semEstoque && estoqueTotal <= 5
 
   const [tamanhoSelecionado, setTamanhoSelecionado] = useState<string | null>(null)
   const [quantidade, setQuantidade] = useState(1)
@@ -73,11 +67,6 @@ export function ProductCard({ produto }: { produto: Produto }) {
         <Badge className="absolute left-2 top-2 border-transparent bg-primary text-primary-foreground">
           {produto.categoria}
         </Badge>
-        {estoqueBaixo && (
-          <Badge className="absolute right-2 top-2 border-transparent bg-gold text-gold-foreground">
-            Últimas {estoqueTotal} unidades
-          </Badge>
-        )}
         {semEstoque && (
           <div className="absolute inset-0 flex items-center justify-center bg-white/40">
             <Badge

@@ -6,7 +6,7 @@ import { CatalogFilters, type Filtros } from '@/components/catalog/catalog-filte
 import { ProductCard } from '@/components/catalog/product-card'
 import type { Produto } from '@/lib/types'
 
-const filtrosIniciais: Filtros = { busca: '', time: 'todos', tamanho: 'todos', categoria: 'todos', ordenar: 'recentes' }
+const filtrosIniciais: Filtros = { busca: '', time: 'todos', tamanho: 'todos', ordenar: 'recentes' }
 
 function estoqueTotal(produto: Produto) {
   return (produto.tamanhos ?? []).reduce((sum, t) => sum + t.estoque_atual, 0)
@@ -23,8 +23,6 @@ export function CatalogClient({ produtos }: { produtos: Produto[] }) {
       ).sort((a, b) => Number(a) - Number(b)),
     [produtos],
   )
-  const categorias = useMemo(() => Array.from(new Set(produtos.map((p) => p.categoria))).sort(), [produtos])
-
   const produtosFiltrados = useMemo(() => {
     const busca = filtros.busca.trim().toLowerCase()
     const filtrados = produtos.filter((produto) => {
@@ -35,7 +33,6 @@ export function CatalogClient({ produtos }: { produtos: Produto[] }) {
         !(produto.tamanhos ?? []).some((t) => t.tamanho === filtros.tamanho && t.estoque_atual > 0)
       )
         return false
-      if (filtros.categoria !== 'todos' && produto.categoria !== filtros.categoria) return false
       return true
     })
 
@@ -57,13 +54,7 @@ export function CatalogClient({ produtos }: { produtos: Produto[] }) {
     <div className="flex flex-1 flex-col">
       <div className="sticky top-[61px] z-30 border-b border-border bg-background/95 backdrop-blur">
         <div className="mx-auto max-w-6xl px-4 py-4 sm:px-6">
-          <CatalogFilters
-            filtros={filtros}
-            onChange={setFiltros}
-            times={times}
-            tamanhos={tamanhos}
-            categorias={categorias}
-          />
+          <CatalogFilters filtros={filtros} onChange={setFiltros} times={times} tamanhos={tamanhos} />
         </div>
       </div>
 

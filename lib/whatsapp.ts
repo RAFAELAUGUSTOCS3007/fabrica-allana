@@ -26,3 +26,8 @@ export function buildWhatsAppContactUrl(mensagem?: string) {
   const encoded = encodeURIComponent(texto)
   return phone ? `https://wa.me/${phone}?text=${encoded}` : `https://wa.me/?text=${encoded}`
 }
+
+// Compartilhamento aberto: sem número fixo, para o cliente escolher com quem dividir.
+export function buildWhatsAppShareUrl(mensagem: string) {
+  return `https://wa.me/?text=${encodeURIComponent(mensagem)}`
+}

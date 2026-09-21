@@ -1,6 +1,7 @@
 import { createServiceClient } from '@/lib/supabase/service'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { VendaFormDialog } from '@/components/admin/venda-form-dialog'
+import { VendaRowActions } from '@/components/admin/venda-row-actions'
 import type { Produto, Venda } from '@/lib/types'
 
 function formatBRL(value: number) {
@@ -45,12 +46,13 @@ export default async function AdminVendasPage() {
               <TableHead>Cliente</TableHead>
               <TableHead>Itens</TableHead>
               <TableHead className="text-right">Total</TableHead>
+              <TableHead className="w-[1%] text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {vendas.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="text-center text-sm text-muted-foreground">
+                <TableCell colSpan={5} className="text-center text-sm text-muted-foreground">
                   Nenhuma venda registrada ainda.
                 </TableCell>
               </TableRow>
@@ -65,6 +67,9 @@ export default async function AdminVendasPage() {
                     {venda.itens.map((item) => `${item.quantidade}x ${item.nome} (${item.tamanho})`).join(', ')}
                   </TableCell>
                   <TableCell className="text-right font-medium">{formatBRL(Number(venda.total))}</TableCell>
+                  <TableCell className="text-right">
+                    <VendaRowActions venda={venda} produtos={produtos} />
+                  </TableCell>
                 </TableRow>
               ))
             )}

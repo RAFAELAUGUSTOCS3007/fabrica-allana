@@ -17,7 +17,6 @@ export type Filtros = {
   busca: string
   time: string
   tamanho: string
-  categoria: string
   ordenar: Ordenacao
 }
 
@@ -51,13 +50,11 @@ export function CatalogFilters({
   onChange,
   times,
   tamanhos,
-  categorias,
 }: {
   filtros: Filtros
   onChange: (filtros: Filtros) => void
   times: string[]
   tamanhos: string[]
-  categorias: string[]
 }) {
   return (
     <div className="flex flex-col gap-3">
@@ -111,21 +108,6 @@ export function CatalogFilters({
             />
           </div>
         </div>
-      </div>
-
-      <div className="flex flex-wrap gap-2">
-        <Chip selected={filtros.categoria === 'todos'} onClick={() => onChange({ ...filtros, categoria: 'todos' })}>
-          Todas as categorias
-        </Chip>
-        {categorias.map((categoria) => (
-          <Chip
-            key={categoria}
-            selected={filtros.categoria === categoria}
-            onClick={() => onChange({ ...filtros, categoria })}
-          >
-            {categoria}
-          </Chip>
-        ))}
       </div>
     </div>
   )

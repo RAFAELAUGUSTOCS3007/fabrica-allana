@@ -16,8 +16,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { registrarVendaAction, type VendaFormState } from '@/app/admin/vendas/actions'
-import type { ItemVenda, Produto } from '@/lib/types'
+import {
+  registrarVendaAction,
+  atualizarVendaAction,
+  type VendaFormState,
+} from '@/app/admin/vendas/actions'
+import type { ItemVenda, Produto, Venda } from '@/lib/types'
 
 const initialState: VendaFormState = { error: null, success: false }
 
@@ -28,23 +32,40 @@ function formatBRL(value: number) {
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 }
 
-function SubmitButton({ disabled }: { disabled: boolean }) {
+function SubmitButton({ disabled, modo }: { disabled: boolean; modo: 'criar' | 'editar' }) {
   const { pending } = useFormStatus()
+  const rotulo = modo === 'editar' ? 'Salvar alterações' : 'Registrar venda'
+  const rotuloPendente = modo === 'editar' ? 'Salvando...' : 'Registrando...'
   return (
     <Button type="submit" disabled={pending || disabled}>
-      {pending ? 'Registrando...' : 'Registrar venda'}
+      {pending ? rotuloPendente : rotulo}
     </Button>
   )
 }
 
-export function VendaFormDialog({ produtos }: { produtos: Produto[] }) {
-  const [state, formAction] = useActionState(registrarVendaAction, initialState)
+export function VendaFormDialog({
+  produtos,
+  venda,
+  trigger,
+}: {
+  produtos: Produto[]
+  venda?: Venda
+  trigger?: React.ReactNode
+}) {
+  const modo: 'criar' | 'editar' = venda ? 'editar' : 'criar'
+  const action = venda ? atualizarVendaAction : registrarVendaAction
+  const [state, formAction] = useActionState(action, initialState)
   const [open, setOpen] = useState(false)
-  const [itens, setItens] = useState<ItemVenda[]>([])
+  const [itens, setItens] = useState<ItemVenda[]>(venda?.itens ?? [])
   const [produtoId, setProdutoId] = useState('')
   const [tamanho, setTamanho] = useState('')
   const [quantidade, setQuantidade] = useState('1')
   const formRef = useRef<HTMLFormElement>(null)
+
+  // Ao abrir em modo edição, recarrega os itens da venda
+  useEffect(() => {
+    if (open && venda) setItens(venda.itens ?? [])
+  }, [open, venda])
 
   const total = useMemo(() => itens.reduce((sum, item) => sum + item.quantidade * item.preco_unitario, 0), [itens])
 
@@ -56,14 +77,16 @@ export function VendaFormDialog({ produtos }: { produtos: Produto[] }) {
 
   useEffect(() => {
     if (state.success) {
-      toast.success('Venda registrada.')
+      toast.success(modo === 'editar' ? 'Venda atualizada.' : 'Venda registrada.')
       setOpen(false)
-      setItens([])
-      formRef.current?.reset()
+      if (modo === 'criar') {
+        setItens([])
+        formRef.current?.reset()
+      }
     } else if (state.error) {
       toast.error(state.error)
     }
-  }, [state])
+  }, [state, modo])
 
   function handleAddItem() {
     const produto = produtos.find((p) => p.id === produtoId)
@@ -91,14 +114,26 @@ export function VendaFormDialog({ produtos }: { produtos: Produto[] }) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button />}>
-        <Plus className="mr-2 h-4 w-4" />
-        Registrar venda
-      </DialogTrigger>
+      <DialogTrigger
+        render={
+          trigger ? (
+            (trigger as React.ReactElement)
+          ) : (
+            <Button>
+              <Plus className="mr-2 h-4 w-4" />
+              Registrar venda
+            </Button>
+          )
+        }
+      />
       <DialogContent className="max-h-[90vh] w-[calc(100%-1.5rem)] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Registrar venda manual</DialogTitle>
-          <DialogDescription>Adicione os produtos vendidos e confirme para dar baixa no estoque.</DialogDescription>
+          <DialogTitle>{modo === 'editar' ? 'Editar venda' : 'Registrar venda manual'}</DialogTitle>
+          <DialogDescription>
+            {modo === 'editar'
+              ? 'Ajuste itens, tamanhos ou cliente. O estoque é corrigido automaticamente.'
+              : 'Adicione os produtos vendidos e confirme para dar baixa no estoque.'}
+          </DialogDescription>
         </DialogHeader>
 
         <div className="flex flex-col gap-3 rounded-md border border-border p-3">
@@ -180,19 +215,21 @@ export function VendaFormDialog({ produtos }: { produtos: Produto[] }) {
         )}
 
         <form ref={formRef} action={formAction} className="flex flex-col gap-4">
+          {venda && <input type="hidden" name="venda_id" value={venda.id} />}
           <input type="hidden" name="itens" value={JSON.stringify(itens)} />
           <div className="flex flex-col gap-2">
             <Label htmlFor="cliente">Cliente (opcional)</Label>
             <Input
               id="cliente"
               name="cliente"
+              defaultValue={venda?.cliente ?? ''}
               placeholder="Nome da loja ou cliente"
               className="h-11 text-base sm:h-9 sm:text-sm"
             />
           </div>
           {state.error && <p className="text-sm text-destructive">{state.error}</p>}
           <DialogFooter>
-            <SubmitButton disabled={itens.length === 0} />
+            <SubmitButton disabled={itens.length === 0} modo={modo} />
           </DialogFooter>
         </form>
       </DialogContent>
