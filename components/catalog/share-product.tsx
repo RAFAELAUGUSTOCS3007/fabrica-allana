@@ -25,10 +25,12 @@ export function ShareProduct({
   produto,
   variant = 'secondary',
   className,
+  iconOnly = false,
 }: {
   produto: Produto
   variant?: 'secondary' | 'outline' | 'ghost'
   className?: string
+  iconOnly?: boolean
 }) {
   const [copiado, setCopiado] = useState(false)
 
@@ -52,10 +54,22 @@ export function ShareProduct({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant={variant} size="lg" className={className}>
-          <Share2 className="mr-2 h-4 w-4" />
-          Compartilhar
-        </Button>
+        {iconOnly ? (
+          <Button
+            variant={variant}
+            size="icon"
+            className={className}
+            aria-label={`Compartilhar ${produto.nome}`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Share2 className="h-4 w-4" />
+          </Button>
+        ) : (
+          <Button variant={variant} size="lg" className={className}>
+            <Share2 className="mr-2 h-4 w-4" />
+            Compartilhar
+          </Button>
+        )}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-52">
         <DropdownMenuItem onSelect={copiarLink}>

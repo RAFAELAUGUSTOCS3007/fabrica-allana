@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useCart } from '@/components/catalog/cart-context'
+import { ShareProduct } from '@/components/catalog/share-product'
 import { buildWhatsAppContactUrl } from '@/lib/whatsapp'
 import type { Produto } from '@/lib/types'
 
@@ -116,12 +117,6 @@ export function ProductDetail({ produto }: { produto: Produto }) {
                 )
               })}
             </div>
-            {tamanhoAtual && (
-              <p className="mt-2 text-xs text-muted-foreground">
-                {estoqueDoTamanho} {estoqueDoTamanho === 1 ? 'unidade disponível' : 'unidades disponíveis'} no tamanho{' '}
-                {tamanhoAtual.tamanho}
-              </p>
-            )}
           </div>
 
           <div className="mt-6 flex items-center gap-3">
@@ -162,7 +157,9 @@ export function ProductDetail({ produto }: { produto: Produto }) {
             Adicionar e ver carrinho
           </Button>
 
-          <a
+          <ShareProduct produto={produto} variant="outline" className="mt-3 w-full" />
+
+          <
             href={buildWhatsAppContactUrl(`Olá! Tenho uma dúvida sobre o ${produto.nome} (${produto.time}).`)}
             target="_blank"
             rel="noopener noreferrer"
