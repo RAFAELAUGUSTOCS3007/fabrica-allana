@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { useCart } from '@/components/catalog/cart-context'
+import { ShareProduct } from '@/components/catalog/share-product'
 import type { Produto } from '@/lib/types'
 
 function formatBRL(value: number) {
@@ -26,13 +27,7 @@ export function ProductCard({ produto }: { produto: Produto }) {
     [produto.tamanhos],
   )
 
-  const estoqueTotal = useMemo(
-    () => (produto.tamanhos ?? []).reduce((sum, t) => sum + t.estoque_atual, 0),
-    [produto.tamanhos],
-  )
-
   const semEstoque = tamanhosComEstoque.length === 0
-  const estoqueBaixo = !semEstoque && estoqueTotal <= 5
 
   const [tamanhoSelecionado, setTamanhoSelecionado] = useState<string | null>(null)
   const [quantidade, setQuantidade] = useState(1)
@@ -53,33 +48,38 @@ export function ProductCard({ produto }: { produto: Produto }) {
 
   return (
     <Card className="flex flex-col overflow-hidden rounded-2xl border-border py-0 shadow-none">
-      <Link
-        href={`/produto/${produto.id}`}
-        className="relative block aspect-square bg-surface-tint focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-        aria-label={`Ver detalhes de ${produto.nome} do ${produto.time}`}
-      >
-        {produto.foto_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={produto.foto_url || '/placeholder.svg'}
-            alt={`${produto.nome} do ${produto.time}`}
-            className={cn('h-full w-full object-cover', semEstoque && 'opacity-60')}
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center">
-            <ImageOff className="h-8 w-8 text-muted-foreground" />
-          </div>
-        )}
-        <Badge className="absolute left-2 top-2 border-transparent bg-primary text-primary-foreground">
+      <div className="relative aspect-square bg-surface-tint">
+        <Link
+          href={`/produto/${produto.id}`}
+          className="block h-full w-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          aria-label={`Ver detalhes de ${produto.nome} do ${produto.time}`}
+        >
+          {produto.foto_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={produto.foto_url || '/placeholder.svg'}
+              alt={`${produto.nome} do ${produto.time}`}
+              className={cn('h-full w-full object-cover', semEstoque && 'opacity-60')}
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center">
+              <ImageOff className="h-8 w-8 text-muted-foreground" />
+            </div>
+          )}
+        </Link>
+        <Badge className="pointer-events-none absolute left-2 top-2 border-transparent bg-primary text-primary-foreground">
           {produto.categoria}
         </Badge>
-        {estoqueBaixo && (
-          <Badge className="absolute right-2 top-2 border-transparent bg-gold text-gold-foreground">
-            Últimas {estoqueTotal} unidades
-          </Badge>
-        )}
+        <div className="absolute right-2 top-2">
+          <ShareProduct
+            produto={produto}
+            variant="secondary"
+            iconOnly
+            className="h-8 w-8 rounded-full bg-background/90 shadow-sm backdrop-blur hover:bg-background"
+          />
+        </div>
         {semEstoque && (
-          <div className="absolute inset-0 flex items-center justify-center bg-white/40">
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-white/40">
             <Badge
               variant="destructive"
               className="-rotate-12 border-transparent bg-foreground/90 px-4 py-1 text-sm font-bold uppercase tracking-wide text-background"
@@ -88,7 +88,7 @@ export function ProductCard({ produto }: { produto: Produto }) {
             </Badge>
           </div>
         )}
-      </Link>
+      </div>
       <CardContent className="flex flex-1 flex-col gap-1 px-4 pt-4">
         <Link href={`/produto/${produto.id}`} className="hover:underline">
           <h3 className="font-display font-bold leading-tight text-foreground">{produto.nome}</h3>
