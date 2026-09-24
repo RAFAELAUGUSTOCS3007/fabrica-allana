@@ -3,7 +3,8 @@
 import { useState } from 'react'
 import { Check, Link2, Share2 } from 'lucide-react'
 import { toast } from 'sonner'
-import { Button } from '@/components/ui/button'
+import { buttonVariants } from '@/components/ui/button'
+import { cn } from 'cn'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -53,24 +54,20 @@ export function ShareProduct({
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        {iconOnly ? (
-          <Button
-            variant={variant}
-            size="icon"
-            className={className}
-            aria-label={`Compartilhar ${produto.nome}`}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <Share2 className="h-4 w-4" />
-          </Button>
-        ) : (
-          <Button variant={variant} size="lg" className={className}>
-            <Share2 className="mr-2 h-4 w-4" />
-            Compartilhar
-          </Button>
-        )}
-      </DropdownMenuTrigger>
+      {iconOnly ? (
+        <DropdownMenuTrigger
+          className={cn(buttonVariants({ variant, size: 'icon' }), className)}
+          aria-label={`Compartilhar ${produto.nome}`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <Share2 className="h-4 w-4" />
+        </DropdownMenuTrigger>
+      ) : (
+        <DropdownMenuTrigger className={cn(buttonVariants({ variant, size: 'lg' }), className)}>
+          <Share2 className="mr-2 h-4 w-4" />
+          Compartilhar
+        </DropdownMenuTrigger>
+      )}
       <DropdownMenuContent align="end" className="w-52">
         <DropdownMenuItem onSelect={copiarLink}>
           {copiado ? <Check className="mr-2 h-4 w-4 text-primary" /> : <Link2 className="mr-2 h-4 w-4" />}
