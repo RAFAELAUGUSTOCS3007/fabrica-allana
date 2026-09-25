@@ -19,7 +19,8 @@ function formatBRL(value: number) {
 }
 
 export function CartDrawer() {
-  const { itens, total, totalItens, atualizarQuantidade, removerItem, cartOpen, setCartOpen } = useCart()
+  const { itens, total, totalItens, atualizarQuantidade, removerItem, limparCarrinho, cartOpen, setCartOpen } =
+    useCart()
 
   return (
     <Sheet open={cartOpen} onOpenChange={setCartOpen}>
@@ -103,6 +104,15 @@ export function CartDrawer() {
             render={<a href={buildWhatsAppOrderUrl(itens, total)} target="_blank" rel="noopener noreferrer" />}
           >
             Finalizar pedido no WhatsApp
+          </Button>
+          <Button
+            variant="ghost"
+            disabled={itens.length === 0}
+            onClick={limparCarrinho}
+            className="w-full text-muted-foreground hover:text-destructive"
+          >
+            <Trash2 className="h-4 w-4" />
+            Esvaziar carrinho
           </Button>
         </SheetFooter>
       </SheetContent>
