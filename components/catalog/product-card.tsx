@@ -28,12 +28,16 @@ export function ProductCard({ produto }: { produto: Produto }) {
   )
 
   const semEstoque = tamanhosComEstoque.length === 0
+  const tamanhoUnico = tamanhosComEstoque.length === 1 ? tamanhosComEstoque[0].tamanho : null
 
-  const [tamanhoSelecionado, setTamanhoSelecionado] = useState<string | null>(null)
+  const [tamanhoSelecionado, setTamanhoSelecionado] = useState<string | null>(tamanhoUnico)
   const [quantidade, setQuantidade] = useState(1)
 
   const tamanhoAtual = tamanhosComEstoque.find((t) => t.tamanho === tamanhoSelecionado) ?? null
   const estoqueDoTamanho = tamanhoAtual?.estoque_atual ?? 0
+  const estoqueMaximo = tamanhoAtual
+    ? estoqueDoTamanho
+    : Math.max(0, ...tamanhosComEstoque.map((t) => t.estoque_atual))
 
   function handleAdicionar() {
     if (!tamanhoSelecionado) {
@@ -132,7 +136,7 @@ export function ProductCard({ produto }: { produto: Produto }) {
             type="button"
             aria-label="Diminuir quantidade"
             className="flex h-9 w-9 items-center justify-center text-muted-foreground hover:text-foreground disabled:opacity-40"
-            disabled={semEstoque || !tamanhoSelecionado}
+            disabled={semEstoque}
             onClick={() => setQuantidade((q) => Math.max(1, q - 1))}
           >
             <Minus className="h-3.5 w-3.5" />
@@ -142,8 +146,8 @@ export function ProductCard({ produto }: { produto: Produto }) {
             type="button"
             aria-label="Aumentar quantidade"
             className="flex h-9 w-9 items-center justify-center text-muted-foreground hover:text-foreground disabled:opacity-40"
-            disabled={semEstoque || !tamanhoSelecionado}
-            onClick={() => setQuantidade((q) => Math.min(estoqueDoTamanho, q + 1))}
+            disabled={semEstoque}
+            onClick={() => setQuantidade((q) => Math.min(estoqueMaximo, q + 1))}
           >
             <Plus className="h-3.5 w-3.5" />
           </button>

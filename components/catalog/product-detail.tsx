@@ -25,12 +25,17 @@ export function ProductDetail({ produto }: { produto: Produto }) {
   )
   const estoqueTotal = tamanhos.reduce((sum, t) => sum + t.estoque_atual, 0)
   const semEstoque = estoqueTotal === 0
+  const tamanhosComEstoque = tamanhos.filter((t) => t.estoque_atual > 0)
+  const tamanhoUnico = tamanhosComEstoque.length === 1 ? tamanhosComEstoque[0].tamanho : null
 
-  const [tamanhoSelecionado, setTamanhoSelecionado] = useState<string | null>(null)
+  const [tamanhoSelecionado, setTamanhoSelecionado] = useState<string | null>(tamanhoUnico)
   const [quantidade, setQuantidade] = useState(1)
 
   const tamanhoAtual = tamanhos.find((t) => t.tamanho === tamanhoSelecionado) ?? null
   const estoqueDoTamanho = tamanhoAtual?.estoque_atual ?? 0
+  const estoqueMaximo = tamanhoAtual
+    ? estoqueDoTamanho
+    : Math.max(0, ...tamanhosComEstoque.map((t) => t.estoque_atual))
 
   function handleAdicionar(abrirCarrinho: boolean) {
     if (!tamanhoSelecionado) {
@@ -125,7 +130,7 @@ export function ProductDetail({ produto }: { produto: Produto }) {
                 type="button"
                 aria-label="Diminuir quantidade"
                 className="flex h-11 w-11 items-center justify-center text-muted-foreground hover:text-foreground disabled:opacity-40"
-                disabled={semEstoque || !tamanhoSelecionado}
+                disabled={semEstoque}
                 onClick={() => setQuantidade((q) => Math.max(1, q - 1))}
               >
                 <Minus className="h-4 w-4" />
@@ -135,8 +140,8 @@ export function ProductDetail({ produto }: { produto: Produto }) {
                 type="button"
                 aria-label="Aumentar quantidade"
                 className="flex h-11 w-11 items-center justify-center text-muted-foreground hover:text-foreground disabled:opacity-40"
-                disabled={semEstoque || !tamanhoSelecionado}
-                onClick={() => setQuantidade((q) => Math.min(estoqueDoTamanho, q + 1))}
+                disabled={semEstoque}
+                onClick={() => setQuantidade((q) => Math.min(estoqueMaximo, q + 1))}
               >
                 <Plus className="h-4 w-4" />
               </button>
@@ -159,7 +164,7 @@ export function ProductDetail({ produto }: { produto: Produto }) {
 
           <ShareProduct produto={produto} variant="outline" className="mt-3 w-full" />
 
-          <
+          <a
             href={buildWhatsAppContactUrl(`Olá! Tenho uma dúvida sobre o ${produto.nome} (${produto.time}).`)}
             target="_blank"
             rel="noopener noreferrer"
