@@ -9,8 +9,17 @@ function chaveItem(produtoId: string, tamanho: string) {
   return `${produtoId}::${tamanho}`
 }
 
+export type CartItem = ItemVenda & {
+  estoque_max?: number
+  foto_url?: string | null
+}
+
+function limitar(quantidade: number, max?: number) {
+  return typeof max === 'number' ? Math.min(quantidade, max) : quantidade
+}
+
 type CartContextValue = {
-  itens: ItemVenda[]
+  itens: CartItem[]
   totalItens: number
   total: number
   adicionarItem: (produto: Produto, tamanho: string, quantidade: number, precoUnitario?: number) => void
@@ -24,7 +33,7 @@ type CartContextValue = {
 const CartContext = createContext<CartContextValue | null>(null)
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [itens, setItens] = useState<ItemVenda[]>([])
+  const [itens, setItens] = useState<CartItem[]>([])
   const [hydrated, setHydrated] = useState(false)
   const [cartOpen, setCartOpen] = useState(false)
 
@@ -45,13 +54,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const adicionarItem = useCallback(
     (produto: Produto, tamanho: string, quantidade: number, precoUnitario?: number) => {
+      const estoqueMax = produto.tamanhos?.find((t) => t.tamanho === tamanho)?.estoque_atual
       setItens((prev) => {
         const chave = chaveItem(produto.id, tamanho)
         const existente = prev.find((item) => chaveItem(item.produto_id, item.tamanho) === chave)
         if (existente) {
           return prev.map((item) =>
             chaveItem(item.produto_id, item.tamanho) === chave
-              ? { ...item, quantidade: item.quantidade + quantidade }
+              ? {
+                  ...item,
+                  estoque_max: estoqueMax ?? item.estoque_max,
+                  foto_url: produto.foto_url,
+                  quantidade: limitar(item.quantidade + quantidade, estoqueMax ?? item.estoque_max),
+                }
               : item,
           )
         }
@@ -62,8 +77,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
             nome: produto.nome,
             time: produto.time,
             tamanho,
-            quantidade,
+            quantidade: limitar(quantidade, estoqueMax),
             preco_unitario: precoUnitario ?? produto.preco_atacado,
+            estoque_max: estoqueMax,
+            foto_url: produto.foto_url,
           },
         ]
       })
@@ -82,7 +99,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
       quantidade <= 0
         ? prev.filter((item) => chaveItem(item.produto_id, item.tamanho) !== chave)
         : prev.map((item) =>
-            chaveItem(item.produto_id, item.tamanho) === chave ? { ...item, quantidade } : item,
+            chaveItem(item.produto_id, item.tamanho) === chave
+              ? { ...item, quantidade: limitar(quantidade, item.estoque_max) }
+              : item,
           ),
     )
   }, [])
