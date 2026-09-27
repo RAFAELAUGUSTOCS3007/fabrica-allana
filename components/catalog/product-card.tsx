@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { ImageOff, Minus, Plus, ShoppingCart } from 'lucide-react'
 import { toast } from 'sonner'
@@ -39,14 +39,23 @@ export function ProductCard({ produto }: { produto: Produto }) {
     ? estoqueDoTamanho
     : Math.max(0, ...tamanhosComEstoque.map((t) => t.estoque_atual))
 
+  const [avisoTamanho, setAvisoTamanho] = useState(false)
+  const avisoTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  function mostrarAvisoTamanho() {
+    if (avisoTimeout.current) clearTimeout(avisoTimeout.current)
+    setAvisoTamanho(true)
+    avisoTimeout.current = setTimeout(() => setAvisoTamanho(false), 2500)
+  }
+
   function handleAdicionar() {
     if (!tamanhoSelecionado) {
-      toast.error('Escolha um tamanho antes de adicionar.')
+      mostrarAvisoTamanho()
       return
     }
     adicionarItem(produto, tamanhoSelecionado, quantidade)
     setQuantidade(1)
-    setTamanhoSelecionado(null)
+    setTamanhoSelecionado(tamanhoUnico)
     toast.success(`${produto.nome} (tam. ${tamanhoSelecionado}) adicionado ao carrinho.`)
   }
 
@@ -115,18 +124,31 @@ export function ProductCard({ produto }: { produto: Produto }) {
                   onClick={() => {
                     setTamanhoSelecionado(t.tamanho)
                     setQuantidade(1)
+                    setAvisoTamanho(false)
                   }}
                   className={cn(
                     'flex h-8 min-w-8 items-center justify-center rounded-md border px-2 text-sm font-medium transition-colors',
                     tamanhoSelecionado === t.tamanho
                       ? 'border-primary bg-primary text-primary-foreground'
-                      : 'border-input text-foreground hover:border-primary',
+                      : avisoTamanho
+                        ? 'border-destructive text-foreground hover:border-primary'
+                        : 'border-input text-foreground hover:border-primary',
                   )}
                 >
                   {t.tamanho}
                 </button>
               ))}
             </div>
+            <p
+              role="status"
+              aria-live="polite"
+              className={cn(
+                'mt-1.5 text-xs font-medium text-destructive transition-opacity duration-300',
+                avisoTamanho ? 'opacity-100' : 'opacity-0',
+              )}
+            >
+              {avisoTamanho ? 'Selecione um tamanho' : '\u00A0'}
+            </p>
           </div>
         )}
       </CardContent>
