@@ -13,6 +13,12 @@ import {
 
 export type Ordenacao = 'recentes' | 'menor-preco' | 'maior-preco'
 
+const ROTULOS_ORDENACAO: Record<Ordenacao, string> = {
+  recentes: 'Mais recentes',
+  'menor-preco': 'Menor preço',
+  'maior-preco': 'Maior preço',
+}
+
 export type Filtros = {
   busca: string
   time: string
@@ -71,9 +77,11 @@ export function CatalogFilters({
         </div>
 
         <div className="flex shrink-0 flex-col gap-2 sm:flex-row sm:items-center">
-          <Select value={filtros.tamanho} onValueChange={(value) => onChange({ ...filtros, tamanho: value })}>
+          <Select value={filtros.tamanho} onValueChange={(value) => onChange({ ...filtros, tamanho: value ?? 'todos' })}>
             <SelectTrigger className="w-full rounded-full bg-card sm:w-32">
-              <SelectValue placeholder="Tamanho" />
+              <SelectValue placeholder="Tamanho">
+                {(value: string) => (value === 'todos' ? 'Tamanhos' : `Tam. ${value}`)}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="todos">Tamanhos</SelectItem>
@@ -89,7 +97,9 @@ export function CatalogFilters({
             onValueChange={(value) => onChange({ ...filtros, ordenar: value as Ordenacao })}
           >
             <SelectTrigger className="w-full rounded-full bg-card sm:w-40">
-              <SelectValue placeholder="Ordenar" />
+              <SelectValue placeholder="Ordenar">
+                {(value: Ordenacao) => ROTULOS_ORDENACAO[value] ?? 'Ordenar'}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="recentes">Mais recentes</SelectItem>
