@@ -53,12 +53,12 @@ export function CatalogClient({ produtos }: { produtos: Produto[] }) {
   return (
     <div className="flex flex-1 flex-col">
       <div className="sticky top-[61px] z-30 border-b border-border bg-background/95 backdrop-blur">
-        <div className="mx-auto max-w-6xl px-4 py-4 sm:px-6">
+        <div className="mx-auto max-w-6xl px-4 py-3 sm:px-6">
           <CatalogFilters filtros={filtros} onChange={setFiltros} times={times} tamanhos={tamanhos} />
         </div>
       </div>
 
-      <div className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:px-6">
+      <div id="catalogo" className="mx-auto w-full max-w-6xl flex-1 scroll-mt-32 px-4 pb-28 pt-6 sm:px-6">
         {produtosFiltrados.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border py-20 text-center">
             <PackageSearch className="mb-3 h-8 w-8 text-muted-foreground" />

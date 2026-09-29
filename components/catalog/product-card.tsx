@@ -80,9 +80,6 @@ export function ProductCard({ produto }: { produto: Produto }) {
             </div>
           )}
         </Link>
-        <Badge className="pointer-events-none absolute left-2 top-2 border-transparent bg-primary text-primary-foreground">
-          {produto.categoria}
-        </Badge>
         <div className="absolute right-2 top-2">
           <ShareProduct
             produto={produto}
