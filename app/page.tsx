@@ -29,8 +29,11 @@ export default async function CatalogPage() {
     <CartProvider>
       <div className="flex min-h-dvh flex-col bg-background">
         <SiteHeader />
-        <CatalogHero />
-        <main className="flex flex-1 flex-col">
+        <CatalogHero
+          totalModelos={produtos.length}
+          totalTimes={new Set(produtos.map((p) => p.time)).size}
+        />
+        <main id="catalogo" className="flex flex-1 scroll-mt-16 flex-col">
           <CatalogClient produtos={produtos} />
         </main>
         <footer className="border-t border-border py-6 text-center text-xs text-muted-foreground">

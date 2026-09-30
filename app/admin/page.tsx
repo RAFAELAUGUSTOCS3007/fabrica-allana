@@ -1,5 +1,19 @@
 import Link from 'next/link'
-import { Package, AlertTriangle, TrendingUp, Wallet, Boxes, Trophy } from 'lucide-react'
+import {
+  AlertTriangle,
+  ArrowDownRight,
+  ArrowUpRight,
+  Boxes,
+  Receipt,
+  TrendingUp,
+  Trophy,
+  Wallet,
+} from 'lucide-react'
+import {
+  FaturamentoMensalChart,
+  VendasDiariasChart,
+  VendasPorTimeChart,
+} from '@/components/admin/dashboard-charts'
 import { createServiceClient } from '@/lib/supabase/service'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -12,17 +26,21 @@ function formatBRL(value: number) {
 export default async function AdminDashboardPage() {
   const supabase = createServiceClient()
 
-  const startOfMonth = new Date()
-  startOfMonth.setDate(1)
-  startOfMonth.setHours(0, 0, 0, 0)
+  const agora = new Date()
+  const startOfMonth = new Date(agora.getFullYear(), agora.getMonth(), 1)
+  const startOfPrevMonth = new Date(agora.getFullYear(), agora.getMonth() - 1, 1)
+  const inicioPeriodo = new Date(agora.getFullYear(), agora.getMonth() - 5, 1)
 
-  const [produtosResult, vendasMesResult, vendasRecentesResult, vendasTodasResult] = await Promise.all([
+  const [produtosResult, vendasPeriodoResult] = await Promise.all([
     supabase
       .from('produtos')
       .select('id, nome, time, ativo, preco_atacado, custo, produto_tamanhos(id, tamanho, estoque_atual, estoque_minimo)'),
-    supabase.from('vendas').select('id, total, data').gte('data', startOfMonth.toISOString()),
-    supabase.from('vendas').select('id, itens, total, data, cliente').order('data', { ascending: false }).limit(5),
-    supabase.from('vendas').select('itens').order('data', { ascending: false }).limit(500),
+    supabase
+      .from('vendas')
+      .select('id, itens, total, data, cliente')
+      .gte('data', inicioPeriodo.toISOString())
+      .order('data', { ascending: false })
+      .limit(5000),
   ])
 
   const produtos = (produtosResult.data ?? []) as unknown as {
@@ -34,9 +52,59 @@ export default async function AdminDashboardPage() {
     custo: number | null
     produto_tamanhos: { id: string; tamanho: string; estoque_atual: number; estoque_minimo: number }[]
   }[]
-  const vendasMes = vendasMesResult.data ?? []
-  const vendasRecentes = (vendasRecentesResult.data ?? []) as Venda[]
-  const vendasTodas = (vendasTodasResult.data ?? []) as { itens: Venda['itens'] }[]
+  const vendasPeriodo = (vendasPeriodoResult.data ?? []) as Venda[]
+  const vendasRecentes = vendasPeriodo.slice(0, 5)
+  const vendasTodas = vendasPeriodo
+  const vendasMes = vendasPeriodo.filter((v) => new Date(v.data) >= startOfMonth)
+  const vendasMesAnterior = vendasPeriodo.filter((v) => {
+    const d = new Date(v.data)
+    return d >= startOfPrevMonth && d < startOfMonth
+  })
+
+  const custoPorProduto = new Map(produtos.map((p) => [p.id, Number(p.custo ?? 0)]))
+  const custoDaVenda = (venda: Venda) =>
+    (venda.itens ?? []).reduce((s, item) => s + item.quantidade * (custoPorProduto.get(item.produto_id) ?? 0), 0)
+  const pecasDaVenda = (venda: Venda) => (venda.itens ?? []).reduce((s, item) => s + item.quantidade, 0)
+
+  const faturamentoAnterior = vendasMesAnterior.reduce((sum, v) => sum + Number(v.total ?? 0), 0)
+  const lucroMes = vendasMes.reduce((sum, v) => sum + Number(v.total ?? 0) - custoDaVenda(v), 0)
+  const pecasMes = vendasMes.reduce((sum, v) => sum + pecasDaVenda(v), 0)
+
+  const mensal = Array.from({ length: 6 }, (_, i) => {
+    const inicio = new Date(agora.getFullYear(), agora.getMonth() - 5 + i, 1)
+    const fim = new Date(inicio.getFullYear(), inicio.getMonth() + 1, 1)
+    const doMes = vendasPeriodo.filter((v) => {
+      const d = new Date(v.data)
+      return d >= inicio && d < fim
+    })
+    const faturamento = doMes.reduce((s, v) => s + Number(v.total ?? 0), 0)
+    return {
+      mes: inicio.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', ''),
+      faturamento,
+      lucro: faturamento - doMes.reduce((s, v) => s + custoDaVenda(v), 0),
+    }
+  })
+
+  const diario = Array.from({ length: 30 }, (_, i) => {
+    const dia = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate() - 29 + i)
+    const chave = dia.toDateString()
+    return {
+      dia: dia.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
+      faturamento: vendasPeriodo
+        .filter((v) => new Date(v.data).toDateString() === chave)
+        .reduce((s, v) => s + Number(v.total ?? 0), 0),
+    }
+  })
+
+  const pecasPorTime = new Map<string, number>()
+  for (const venda of vendasPeriodo) {
+    for (const item of venda.itens ?? []) {
+      pecasPorTime.set(item.time, (pecasPorTime.get(item.time) ?? 0) + item.quantidade)
+    }
+  }
+  const porTime = Array.from(pecasPorTime, ([time, pecas]) => ({ time, pecas }))
+    .sort((a, b) => b.pecas - a.pecas)
+    .slice(0, 6)
 
   const produtosAtivos = produtos.filter((p) => p.ativo)
   const estoqueBaixo = produtos
@@ -80,11 +148,45 @@ export default async function AdminDashboardPage() {
     .sort((a, b) => b.quantidade - a.quantidade)
     .slice(0, 6)
 
-  const stats = [
-    { label: 'Produtos ativos', value: produtosAtivos.length, icon: Package },
-    { label: 'Estoque baixo', value: estoqueBaixo.length, icon: AlertTriangle, alert: estoqueBaixo.length > 0 },
-    { label: 'Vendas no mês', value: vendasMes.length, icon: TrendingUp },
-    { label: 'Faturado no mês', value: formatBRL(totalVendidoMes), icon: Wallet },
+  const variacao =
+    faturamentoAnterior > 0 ? ((totalVendidoMes - faturamentoAnterior) / faturamentoAnterior) * 100 : null
+  const ticketMedio = vendasMes.length > 0 ? totalVendidoMes / vendasMes.length : 0
+  const margemMes = totalVendidoMes > 0 ? (lucroMes / totalVendidoMes) * 100 : 0
+
+  const stats: {
+    label: string
+    value: string | number
+    hint: string
+    icon: typeof Wallet
+    alert?: boolean
+    trend?: number | null
+  }[] = [
+    {
+      label: 'Faturado no mês',
+      value: formatBRL(totalVendidoMes),
+      hint: variacao === null ? 'sem vendas no mês anterior' : 'vs. mês anterior',
+      icon: Wallet,
+      trend: variacao,
+    },
+    {
+      label: 'Lucro estimado',
+      value: formatBRL(lucroMes),
+      hint: `margem de ${margemMes.toFixed(0)}%`,
+      icon: TrendingUp,
+    },
+    {
+      label: 'Ticket médio',
+      value: formatBRL(ticketMedio),
+      hint: `${vendasMes.length} ${vendasMes.length === 1 ? 'venda' : 'vendas'} · ${pecasMes} peças`,
+      icon: Receipt,
+    },
+    {
+      label: 'Estoque baixo',
+      value: estoqueBaixo.length,
+      hint: `${produtosAtivos.length} produtos ativos`,
+      icon: AlertTriangle,
+      alert: estoqueBaixo.length > 0,
+    },
   ]
 
   return (
@@ -97,21 +199,44 @@ export default async function AdminDashboardPage() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
           <Card key={stat.label}>
-            <CardContent className="flex items-center justify-between pt-6">
-              <div>
+            <CardContent className="flex flex-col gap-3 pt-6">
+              <div className="flex items-center justify-between">
                 <p className="text-sm text-muted-foreground">{stat.label}</p>
-                <p className={`text-2xl font-bold ${stat.alert ? 'text-destructive' : ''}`}>{stat.value}</p>
+                <div
+                  className={`flex h-9 w-9 items-center justify-center rounded-full ${
+                    stat.alert ? 'bg-destructive/10' : 'bg-primary/10'
+                  }`}
+                >
+                  <stat.icon className={`h-4 w-4 ${stat.alert ? 'text-destructive' : 'text-primary'}`} />
+                </div>
               </div>
-              <div
-                className={`flex h-10 w-10 items-center justify-center rounded-full ${
-                  stat.alert ? 'bg-destructive/10' : 'bg-primary/10'
-                }`}
-              >
-                <stat.icon className={`h-5 w-5 ${stat.alert ? 'text-destructive' : 'text-primary'}`} />
+              <p className={`text-2xl font-bold tabular-nums ${stat.alert ? 'text-destructive' : ''}`}>{stat.value}</p>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                {typeof stat.trend === 'number' && (
+                  <span
+                    className={`inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 font-semibold ${
+                      stat.trend >= 0 ? 'bg-primary/10 text-primary' : 'bg-destructive/10 text-destructive'
+                    }`}
+                  >
+                    {stat.trend >= 0 ? (
+                      <ArrowUpRight className="h-3 w-3" aria-hidden="true" />
+                    ) : (
+                      <ArrowDownRight className="h-3 w-3" aria-hidden="true" />
+                    )}
+                    {Math.abs(stat.trend).toFixed(0)}%
+                  </span>
+                )}
+                <span>{stat.hint}</span>
               </div>
             </CardContent>
           </Card>
         ))}
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <FaturamentoMensalChart data={mensal} />
+        <VendasDiariasChart data={diario} />
+        <VendasPorTimeChart data={porTime} />
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">

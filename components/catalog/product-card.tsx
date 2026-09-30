@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { useCart } from '@/components/catalog/cart-context'
 import { ShareProduct } from '@/components/catalog/share-product'
+import { flyToCart } from '@/lib/fly-to-cart'
 import type { Produto } from '@/lib/types'
 
 function formatBRL(value: number) {
@@ -18,6 +19,7 @@ function formatBRL(value: number) {
 
 export function ProductCard({ produto }: { produto: Produto }) {
   const { adicionarItem } = useCart()
+  const imagemRef = useRef<HTMLDivElement>(null)
 
   const tamanhosComEstoque = useMemo(
     () =>
@@ -53,6 +55,7 @@ export function ProductCard({ produto }: { produto: Produto }) {
       mostrarAvisoTamanho()
       return
     }
+    flyToCart(imagemRef.current)
     adicionarItem(produto, tamanhoSelecionado, quantidade)
     setQuantidade(1)
     setTamanhoSelecionado(tamanhoUnico)
@@ -61,7 +64,7 @@ export function ProductCard({ produto }: { produto: Produto }) {
 
   return (
     <Card className="flex flex-col overflow-hidden rounded-2xl border-border py-0 shadow-none">
-      <div className="relative aspect-square bg-surface-tint">
+      <div ref={imagemRef} className="relative aspect-square bg-surface-tint">
         <Link
           href={`/produto/${produto.id}`}
           className="block h-full w-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"

@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/sheet'
 import { useCart, type CartItem } from '@/components/catalog/cart-context'
 import { buildWhatsAppOrderUrl } from '@/lib/whatsapp'
+import { CART_TRIGGER_ID } from '@/lib/fly-to-cart'
 
 function formatBRL(value: number) {
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
@@ -23,8 +24,8 @@ function CartLine({ item }: { item: CartItem }) {
   const noLimite = typeof item.estoque_max === 'number' && item.quantidade >= item.estoque_max
 
   return (
-    <li className="flex gap-3 border-b border-border py-4 last:border-b-0">
-      <div className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted">
+    <li className="flex gap-3 border-b border-border py-4 last:border-b-0 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-right-4 motion-safe:duration-300">
+      <div className="flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-muted">
         {item.foto_url ? (
           <img src={item.foto_url || '/placeholder.svg'} alt={item.nome} className="size-full object-cover" />
         ) : (
@@ -93,11 +94,14 @@ export function CartDrawer() {
 
   return (
     <Sheet open={cartOpen} onOpenChange={setCartOpen}>
-      <SheetTrigger render={<Button variant="outline" className="relative" />}>
+      <SheetTrigger render={<Button id={CART_TRIGGER_ID} variant="outline" className="relative" />}>
         <ShoppingBag className="h-4 w-4" />
         <span className="hidden sm:inline">Carrinho</span>
         {totalItens > 0 && (
-          <span className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-gold px-1 text-xs font-semibold text-gold-foreground">
+          <span
+            key={totalItens}
+            className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-gold px-1 text-xs font-bold text-gold-foreground motion-safe:animate-in motion-safe:zoom-in-50 motion-safe:duration-300"
+          >
             {totalItens}
           </span>
         )}
@@ -134,10 +138,20 @@ export function CartDrawer() {
 
         {itens.length > 0 && (
           <SheetFooter className="flex-col gap-3 border-t border-border pt-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Total</span>
-              <span className="font-display text-xl font-bold tabular-nums">{formatBRL(total)}</span>
-            </div>
+            <dl className="flex flex-col gap-1.5 rounded-2xl bg-secondary p-4 text-sm">
+              <div className="flex items-center justify-between">
+                <dt className="text-muted-foreground">Peças</dt>
+                <dd className="font-semibold tabular-nums">{totalItens}</dd>
+              </div>
+              <div className="flex items-center justify-between">
+                <dt className="text-muted-foreground">Frete</dt>
+                <dd className="font-semibold">Combinado no WhatsApp</dd>
+              </div>
+              <div className="mt-1 flex items-center justify-between border-t border-border pt-2">
+                <dt className="font-bold">Total</dt>
+                <dd className="font-display text-2xl font-extrabold tabular-nums text-primary">{formatBRL(total)}</dd>
+              </div>
+            </dl>
             <Button
               size="lg"
               nativeButton={false}

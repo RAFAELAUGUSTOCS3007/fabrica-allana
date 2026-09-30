@@ -12,12 +12,12 @@ function WhatsAppIcon({ className }: { className?: string }) {
   )
 }
 
-export function WhatsAppFab() {
+export function WhatsAppFab({ alwaysRaisedOnMobile = false }: { alwaysRaisedOnMobile?: boolean }) {
   const { totalItens } = useCart()
   const href = buildWhatsAppContactUrl()
 
-  // Sobe o botão quando a barra fixa do carrinho está visível no mobile
-  const raised = totalItens > 0
+  // Sobe o botão quando há uma barra fixa inferior visível no mobile
+  const raised = alwaysRaisedOnMobile || totalItens > 0
 
   return (
     <a
