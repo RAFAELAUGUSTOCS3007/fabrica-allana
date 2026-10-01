@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { createServiceClient } from '@/lib/supabase/service'
+import { isAdminSession, NAO_AUTORIZADO } from '@/lib/admin-guard'
 
 const tamanhoSchema = z.object({
   tamanho: z.string().trim().min(1),
@@ -41,6 +42,7 @@ export async function createProdutoAction(
   _prevState: ProdutoFormState,
   formData: FormData,
 ): Promise<ProdutoFormState> {
+  if (!(await isAdminSession())) return NAO_AUTORIZADO
   const parsed = produtoSchema.safeParse({
     nome: formData.get('nome'),
     time: formData.get('time'),
@@ -108,6 +110,7 @@ export async function updateProdutoAction(
   _prevState: ProdutoFormState,
   formData: FormData,
 ): Promise<ProdutoFormState> {
+  if (!(await isAdminSession())) return NAO_AUTORIZADO
   const id = String(formData.get('id') ?? '')
   if (!id) return { error: 'Produto inválido.', success: false }
 
@@ -185,6 +188,7 @@ export async function updateProdutoAction(
 }
 
 export async function deleteProdutoAction(id: string) {
+  if (!(await isAdminSession())) return { error: NAO_AUTORIZADO.error }
   const supabase = createServiceClient()
   const { error } = await supabase.from('produtos').delete().eq('id', id)
   if (error) {
@@ -198,6 +202,7 @@ export async function deleteProdutoAction(id: string) {
 }
 
 export async function toggleAtivoAction(id: string, ativo: boolean) {
+  if (!(await isAdminSession())) return { error: NAO_AUTORIZADO.error }
   const supabase = createServiceClient()
   const { error } = await supabase.from('produtos').update({ ativo }).eq('id', id)
   if (error) {

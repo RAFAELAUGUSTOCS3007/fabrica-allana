@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { createServiceClient } from '@/lib/supabase/service'
+import { isAdminSession, NAO_AUTORIZADO } from '@/lib/admin-guard'
 
 const movimentacaoSchema = z.object({
   produto_id: z.string().uuid('Selecione um produto.'),
@@ -18,6 +19,7 @@ export async function registrarMovimentacaoAction(
   _prevState: MovimentacaoFormState,
   formData: FormData,
 ): Promise<MovimentacaoFormState> {
+  if (!(await isAdminSession())) return NAO_AUTORIZADO
   const parsed = movimentacaoSchema.safeParse({
     produto_id: formData.get('produto_id'),
     tamanho: formData.get('tamanho'),

@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { ImageOff, Minus, Plus, ShoppingCart } from 'lucide-react'
 import { toast } from 'sonner'
@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { useCart } from '@/components/catalog/cart-context'
 import { ShareProduct } from '@/components/catalog/share-product'
+import { flyToCart } from '@/lib/fly-to-cart'
 import type { Produto } from '@/lib/types'
 
 function formatBRL(value: number) {
@@ -18,6 +19,7 @@ function formatBRL(value: number) {
 
 export function ProductCard({ produto }: { produto: Produto }) {
   const { adicionarItem } = useCart()
+  const imagemRef = useRef<HTMLDivElement>(null)
 
   const tamanhosComEstoque = useMemo(
     () =>
@@ -39,20 +41,30 @@ export function ProductCard({ produto }: { produto: Produto }) {
     ? estoqueDoTamanho
     : Math.max(0, ...tamanhosComEstoque.map((t) => t.estoque_atual))
 
+  const [avisoTamanho, setAvisoTamanho] = useState(false)
+  const avisoTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  function mostrarAvisoTamanho() {
+    if (avisoTimeout.current) clearTimeout(avisoTimeout.current)
+    setAvisoTamanho(true)
+    avisoTimeout.current = setTimeout(() => setAvisoTamanho(false), 2500)
+  }
+
   function handleAdicionar() {
     if (!tamanhoSelecionado) {
-      toast.error('Escolha um tamanho antes de adicionar.')
+      mostrarAvisoTamanho()
       return
     }
+    flyToCart(imagemRef.current)
     adicionarItem(produto, tamanhoSelecionado, quantidade)
     setQuantidade(1)
-    setTamanhoSelecionado(null)
+    setTamanhoSelecionado(tamanhoUnico)
     toast.success(`${produto.nome} (tam. ${tamanhoSelecionado}) adicionado ao carrinho.`)
   }
 
   return (
     <Card className="flex flex-col overflow-hidden rounded-2xl border-border py-0 shadow-none">
-      <div className="relative aspect-square bg-surface-tint">
+      <div ref={imagemRef} className="relative aspect-square bg-surface-tint">
         <Link
           href={`/produto/${produto.id}`}
           className="block h-full w-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
@@ -71,9 +83,6 @@ export function ProductCard({ produto }: { produto: Produto }) {
             </div>
           )}
         </Link>
-        <Badge className="pointer-events-none absolute left-2 top-2 border-transparent bg-primary text-primary-foreground">
-          {produto.categoria}
-        </Badge>
         <div className="absolute right-2 top-2">
           <ShareProduct
             produto={produto}
@@ -115,18 +124,31 @@ export function ProductCard({ produto }: { produto: Produto }) {
                   onClick={() => {
                     setTamanhoSelecionado(t.tamanho)
                     setQuantidade(1)
+                    setAvisoTamanho(false)
                   }}
                   className={cn(
                     'flex h-8 min-w-8 items-center justify-center rounded-md border px-2 text-sm font-medium transition-colors',
                     tamanhoSelecionado === t.tamanho
                       ? 'border-primary bg-primary text-primary-foreground'
-                      : 'border-input text-foreground hover:border-primary',
+                      : avisoTamanho
+                        ? 'border-destructive text-foreground hover:border-primary'
+                        : 'border-input text-foreground hover:border-primary',
                   )}
                 >
                   {t.tamanho}
                 </button>
               ))}
             </div>
+            <p
+              role="status"
+              aria-live="polite"
+              className={cn(
+                'mt-1.5 text-xs font-medium text-destructive transition-opacity duration-300',
+                avisoTamanho ? 'opacity-100' : 'opacity-0',
+              )}
+            >
+              {avisoTamanho ? 'Selecione um tamanho' : '\u00A0'}
+            </p>
           </div>
         )}
       </CardContent>

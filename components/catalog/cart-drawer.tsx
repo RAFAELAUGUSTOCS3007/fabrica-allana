@@ -1,6 +1,6 @@
 'use client'
 
-import { Minus, Plus, ShoppingBag, Trash2 } from 'lucide-react'
+import { ImageOff, Minus, Plus, ShoppingBag, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Sheet,
@@ -11,24 +11,97 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet'
-import { useCart } from '@/components/catalog/cart-context'
+import { useCart, type CartItem } from '@/components/catalog/cart-context'
 import { buildWhatsAppOrderUrl } from '@/lib/whatsapp'
+import { CART_TRIGGER_ID } from '@/lib/fly-to-cart'
 
 function formatBRL(value: number) {
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 }
 
+function CartLine({ item }: { item: CartItem }) {
+  const { atualizarQuantidade, removerItem } = useCart()
+  const noLimite = typeof item.estoque_max === 'number' && item.quantidade >= item.estoque_max
+
+  return (
+    <li className="flex gap-3 border-b border-border py-4 last:border-b-0 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-right-4 motion-safe:duration-300">
+      <div className="flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-muted">
+        {item.foto_url ? (
+          <img src={item.foto_url || '/placeholder.svg'} alt={item.nome} className="size-full object-cover" />
+        ) : (
+          <ImageOff className="size-5 text-muted-foreground" aria-hidden="true" />
+        )}
+      </div>
+
+      <div className="flex min-w-0 flex-1 flex-col gap-2">
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <p className="truncate text-sm font-medium">{item.nome}</p>
+            <p className="text-xs text-muted-foreground">
+              {item.time} · Tam. {item.tamanho}
+            </p>
+          </div>
+          <button
+            type="button"
+            aria-label={`Remover ${item.nome} do carrinho`}
+            onClick={() => removerItem(item.produto_id, item.tamanho)}
+            className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+          >
+            <Trash2 className="size-4" />
+          </button>
+        </div>
+
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center rounded-md border border-input">
+            <button
+              type="button"
+              aria-label="Diminuir quantidade"
+              className="flex size-8 items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
+              onClick={() => atualizarQuantidade(item.produto_id, item.tamanho, item.quantidade - 1)}
+            >
+              {item.quantidade === 1 ? <Trash2 className="size-3.5" /> : <Minus className="size-3.5" />}
+            </button>
+            <span className="w-8 text-center text-sm font-medium tabular-nums" aria-live="polite">
+              {item.quantidade}
+            </span>
+            <button
+              type="button"
+              aria-label="Aumentar quantidade"
+              disabled={noLimite}
+              className="flex size-8 items-center justify-center text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40"
+              onClick={() => atualizarQuantidade(item.produto_id, item.tamanho, item.quantidade + 1)}
+            >
+              <Plus className="size-3.5" />
+            </button>
+          </div>
+
+          <div className="text-right">
+            <p className="font-display text-sm font-bold text-primary tabular-nums">
+              {formatBRL(item.quantidade * item.preco_unitario)}
+            </p>
+            {item.quantidade > 1 && (
+              <p className="text-xs text-muted-foreground tabular-nums">{formatBRL(item.preco_unitario)} cada</p>
+            )}
+          </div>
+        </div>
+      </div>
+    </li>
+  )
+}
+
 export function CartDrawer() {
-  const { itens, total, totalItens, atualizarQuantidade, removerItem, limparCarrinho, cartOpen, setCartOpen } =
-    useCart()
+  const { itens, total, totalItens, limparCarrinho, cartOpen, setCartOpen } = useCart()
 
   return (
     <Sheet open={cartOpen} onOpenChange={setCartOpen}>
-      <SheetTrigger render={<Button variant="outline" className="relative" />}>
+      <SheetTrigger render={<Button id={CART_TRIGGER_ID} variant="outline" className="relative" />}>
         <ShoppingBag className="h-4 w-4" />
         <span className="hidden sm:inline">Carrinho</span>
         {totalItens > 0 && (
-          <span className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-gold px-1 text-xs font-semibold text-gold-foreground">
+          <span
+            key={totalItens}
+            className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-gold px-1 text-xs font-bold text-gold-foreground motion-safe:animate-in motion-safe:zoom-in-50 motion-safe:duration-300"
+          >
             {totalItens}
           </span>
         )}
@@ -36,85 +109,67 @@ export function CartDrawer() {
       <SheetContent className="flex w-full flex-col sm:max-w-md">
         <SheetHeader>
           <SheetTitle>Seu pedido</SheetTitle>
-          <SheetDescription>Revise os itens antes de enviar o pedido pelo WhatsApp.</SheetDescription>
+          <SheetDescription>
+            {totalItens > 0
+              ? `${totalItens} ${totalItens === 1 ? 'peça' : 'peças'} · revise antes de enviar pelo WhatsApp.`
+              : 'Revise os itens antes de enviar o pedido pelo WhatsApp.'}
+          </SheetDescription>
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto px-4">
           {itens.length === 0 ? (
-            <p className="py-10 text-center text-sm text-muted-foreground">Seu carrinho está vazio.</p>
-          ) : (
-            <div className="flex flex-col gap-3 py-2">
-              {itens.map((item) => (
-                <div
-                  key={`${item.produto_id}-${item.tamanho}`}
-                  className="flex items-start justify-between gap-3 border-b border-border pb-3"
-                >
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">{item.nome}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {item.time} · Tam. {item.tamanho}
-                    </p>
-                    <p className="font-display mt-1 text-sm font-bold text-primary">{formatBRL(item.preco_unitario)}</p>
-                  </div>
-                  <div className="flex flex-col items-end gap-2">
-                    <button
-                      type="button"
-                      aria-label="Remover item"
-                      onClick={() => removerItem(item.produto_id, item.tamanho)}
-                      className="text-muted-foreground hover:text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                    <div className="flex items-center rounded-md border border-input">
-                      <button
-                        type="button"
-                        aria-label="Diminuir quantidade"
-                        className="flex h-7 w-7 items-center justify-center text-muted-foreground hover:text-foreground"
-                        onClick={() => atualizarQuantidade(item.produto_id, item.tamanho, item.quantidade - 1)}
-                      >
-                        <Minus className="h-3 w-3" />
-                      </button>
-                      <span className="w-6 text-center text-xs font-medium">{item.quantidade}</span>
-                      <button
-                        type="button"
-                        aria-label="Aumentar quantidade"
-                        className="flex h-7 w-7 items-center justify-center text-muted-foreground hover:text-foreground"
-                        onClick={() => atualizarQuantidade(item.produto_id, item.tamanho, item.quantidade + 1)}
-                      >
-                        <Plus className="h-3 w-3" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
+            <div className="flex flex-col items-center gap-3 py-16 text-center">
+              <div className="flex size-14 items-center justify-center rounded-full bg-muted">
+                <ShoppingBag className="size-6 text-muted-foreground" aria-hidden="true" />
+              </div>
+              <p className="text-sm font-medium">Seu carrinho está vazio</p>
+              <Button variant="outline" size="sm" onClick={() => setCartOpen(false)}>
+                Ver conjuntos
+              </Button>
             </div>
+          ) : (
+            <ul>
+              {itens.map((item) => (
+                <CartLine key={`${item.produto_id}-${item.tamanho}`} item={item} />
+              ))}
+            </ul>
           )}
         </div>
 
-        <SheetFooter className="flex-col gap-3 border-t border-border pt-4">
-          <div className="font-display flex items-center justify-between text-base font-bold">
-            <span>Total</span>
-            <span>{formatBRL(total)}</span>
-          </div>
-          <Button
-            size="lg"
-            nativeButton={false}
-            disabled={itens.length === 0}
-            className="w-full bg-gold text-gold-foreground hover:bg-gold/90"
-            render={<a href={buildWhatsAppOrderUrl(itens, total)} target="_blank" rel="noopener noreferrer" />}
-          >
-            Finalizar pedido no WhatsApp
-          </Button>
-          <Button
-            variant="ghost"
-            disabled={itens.length === 0}
-            onClick={limparCarrinho}
-            className="w-full text-muted-foreground hover:text-destructive"
-          >
-            <Trash2 className="h-4 w-4" />
-            Esvaziar carrinho
-          </Button>
-        </SheetFooter>
+        {itens.length > 0 && (
+          <SheetFooter className="flex-col gap-3 border-t border-border pt-4">
+            <dl className="flex flex-col gap-1.5 rounded-2xl bg-secondary p-4 text-sm">
+              <div className="flex items-center justify-between">
+                <dt className="text-muted-foreground">Peças</dt>
+                <dd className="font-semibold tabular-nums">{totalItens}</dd>
+              </div>
+              <div className="flex items-center justify-between">
+                <dt className="text-muted-foreground">Frete</dt>
+                <dd className="font-semibold">Combinado no WhatsApp</dd>
+              </div>
+              <div className="mt-1 flex items-center justify-between border-t border-border pt-2">
+                <dt className="font-bold">Total</dt>
+                <dd className="font-display text-2xl font-extrabold tabular-nums text-primary">{formatBRL(total)}</dd>
+              </div>
+            </dl>
+            <Button
+              size="lg"
+              nativeButton={false}
+              className="w-full bg-gold text-gold-foreground hover:bg-gold/90"
+              render={<a href={buildWhatsAppOrderUrl(itens, total)} target="_blank" rel="noopener noreferrer" />}
+            >
+              Finalizar pedido no WhatsApp
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={limparCarrinho}
+              className="w-full text-muted-foreground hover:text-destructive"
+            >
+              <Trash2 className="h-4 w-4" />
+              Esvaziar carrinho
+            </Button>
+          </SheetFooter>
+        )}
       </SheetContent>
     </Sheet>
   )

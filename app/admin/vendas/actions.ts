@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { createServiceClient } from '@/lib/supabase/service'
+import { isAdminSession, NAO_AUTORIZADO } from '@/lib/admin-guard'
 import type { ItemVenda } from '@/lib/types'
 
 const itemSchema = z.object({
@@ -25,6 +26,7 @@ export async function registrarVendaAction(
   _prevState: VendaFormState,
   formData: FormData,
 ): Promise<VendaFormState> {
+  if (!(await isAdminSession())) return NAO_AUTORIZADO
   let parsedItens: unknown
   try {
     parsedItens = JSON.parse(String(formData.get('itens') ?? '[]'))
@@ -138,6 +140,7 @@ export async function atualizarVendaAction(
   _prevState: VendaFormState,
   formData: FormData,
 ): Promise<VendaFormState> {
+  if (!(await isAdminSession())) return NAO_AUTORIZADO
   const vendaId = String(formData.get('venda_id') ?? '')
   if (!z.string().uuid().safeParse(vendaId).success) {
     return { error: 'Venda inválida.', success: false }
@@ -254,6 +257,7 @@ export async function atualizarVendaAction(
 }
 
 export async function excluirVendaAction(vendaId: string): Promise<{ error: string | null; success: boolean }> {
+  if (!(await isAdminSession())) return NAO_AUTORIZADO
   if (!z.string().uuid().safeParse(vendaId).success) {
     return { error: 'Venda inválida.', success: false }
   }

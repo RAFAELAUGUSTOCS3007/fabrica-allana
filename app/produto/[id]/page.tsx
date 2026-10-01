@@ -2,7 +2,6 @@ import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { SiteHeader } from '@/components/catalog/site-header'
 import { CartProvider } from '@/components/catalog/cart-context'
-import { CartBottomBar } from '@/components/catalog/cart-bottom-bar'
 import { WhatsAppFab } from '@/components/catalog/whatsapp-fab'
 import { ProductDetail } from '@/components/catalog/product-detail'
 import type { Produto } from '@/lib/types'
@@ -34,14 +33,13 @@ export default async function ProdutoPage({ params }: { params: Promise<{ id: st
     <CartProvider>
       <div className="flex min-h-dvh flex-col bg-background">
         <SiteHeader />
-        <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 sm:px-6 sm:py-10">
+        <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:px-6 sm:py-10">
           <ProductDetail produto={produto} />
         </main>
         <footer className="border-t border-border py-6 text-center text-xs text-muted-foreground">
           A&amp;A Sports · Preços exclusivos para revenda no atacado
         </footer>
-        <CartBottomBar />
-        <WhatsAppFab />
+        <WhatsAppFab alwaysRaisedOnMobile />
       </div>
     </CartProvider>
   )

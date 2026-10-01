@@ -69,21 +69,20 @@ export function ShareProduct({
         </DropdownMenuTrigger>
       )}
       <DropdownMenuContent align="end" className="w-52">
-        <DropdownMenuItem onSelect={copiarLink}>
+        <DropdownMenuItem onClick={copiarLink}>
           {copiado ? <Check className="mr-2 h-4 w-4 text-primary" /> : <Link2 className="mr-2 h-4 w-4" />}
           {copiado ? 'Link copiado' : 'Copiar link'}
         </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <a
-            href={buildWhatsAppShareUrl(
+        <DropdownMenuItem
+          onClick={() => {
+            const url = buildWhatsAppShareUrl(
               `Olha esse ${produto.nome} (${produto.time}) da A&A Sports: ${getUrl()}`,
-            )}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <WhatsAppIcon className="mr-2 h-4 w-4" />
-            Enviar no WhatsApp
-          </a>
+            )
+            window.open(url, '_blank', 'noopener,noreferrer')
+          }}
+        >
+          <WhatsAppIcon className="mr-2 h-4 w-4" />
+          Enviar no WhatsApp
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
