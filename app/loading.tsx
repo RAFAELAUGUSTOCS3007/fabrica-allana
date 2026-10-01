@@ -31,7 +31,7 @@ export default function CatalogLoading() {
     <CartProvider>
       <div className="flex min-h-dvh flex-col bg-background">
         <SiteHeader />
-        <CatalogHero totalModelos={0} totalTimes={0} />
+        <CatalogHero />
         <main className="flex flex-1 flex-col">
           <div className="mx-auto w-full max-w-6xl px-4 py-6">
             <div className="mb-6 flex flex-wrap gap-2">
