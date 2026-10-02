@@ -24,7 +24,7 @@ import type { Produto } from '@/lib/types'
 
 const initialState: ProdutoFormState = { error: null, success: false }
 
-const TAMANHOS_DISPONIVEIS = Array.from({ length: 15 }, (_, i) => String(i)) // 0 a 14
+const TAMANHOS_DISPONIVEIS = ['0', '2', '4', '6', '8', '10', '12', '14']
 const ESTOQUE_MINIMO_PADRAO = 3
 
 type TamanhoEstado = { tamanho: string; ativo: boolean; estoque_atual: number; estoque_minimo: number }
@@ -86,7 +86,11 @@ function CurrencyField({
 
 function buildEstadoInicial(base?: Produto): TamanhoEstado[] {
   const existentes = new Map((base?.tamanhos ?? []).map((t) => [t.tamanho, t]))
-  return TAMANHOS_DISPONIVEIS.map((tamanho) => {
+  // Keeps legacy odd sizes already saved on a product so editing never drops their stock
+  const lista = Array.from(new Set([...TAMANHOS_DISPONIVEIS, ...existentes.keys()])).sort(
+    (a, b) => Number(a) - Number(b),
+  )
+  return lista.map((tamanho) => {
     const existente = existentes.get(tamanho)
     return {
       tamanho,
@@ -107,10 +111,7 @@ export function ProdutoFormDialog({ produto, duplicarDe }: { produto?: Produto; 
   const [preview, setPreview] = useState<string | null>(base?.foto_url ?? null)
   const [fotoUrl, setFotoUrl] = useState<string | null>(base?.foto_url ?? null)
   const [uploading, setUploading] = useState(false)
-  // Na duplicação, começa sem tamanhos selecionados (nova variação); em edição usa os existentes
-  const [tamanhos, setTamanhos] = useState<TamanhoEstado[]>(() =>
-    buildEstadoInicial(isDuplicado ? undefined : base),
-  )
+  const [tamanhos, setTamanhos] = useState<TamanhoEstado[]>(() => buildEstadoInicial(base))
   const formRef = useRef<HTMLFormElement>(null)
 
   const tamanhosAtivos = useMemo(() => tamanhos.filter((t) => t.ativo), [tamanhos])
@@ -134,11 +135,11 @@ export function ProdutoFormDialog({ produto, duplicarDe }: { produto?: Produto; 
       formRef.current?.reset()
       setPreview(base?.foto_url ?? null)
       setFotoUrl(base?.foto_url ?? null)
-      setTamanhos(buildEstadoInicial(isDuplicado ? undefined : base))
+      setTamanhos(buildEstadoInicial(base))
     } else if (state.error) {
       toast.error(state.error)
     }
-  }, [state, isEdit, isDuplicado, base])
+  }, [state, isEdit, base])
 
   function toggleTamanho(tamanho: string) {
     setTamanhos((prev) =>
@@ -221,7 +222,7 @@ export function ProdutoFormDialog({ produto, duplicarDe }: { produto?: Produto; 
             {isEdit
               ? 'Atualize as informações e o estoque por tamanho deste conjunto.'
               : isDuplicado
-                ? 'Os dados foram copiados. Selecione os tamanhos e o estoque desta variação.'
+                ? 'Todas as informações foram copiadas, incluindo tamanhos e estoque. Ajuste o que for diferente e cadastre.'
                 : 'Cadastre um conjunto uma única vez e defina o estoque de cada tamanho.'}
           </DialogDescription>
         </DialogHeader>
@@ -307,7 +308,7 @@ export function ProdutoFormDialog({ produto, duplicarDe }: { produto?: Produto; 
               id="custo"
               name="custo"
               label="Custo de produção"
-              defaultValue={isDuplicado ? '' : base?.custo ?? ''}
+              defaultValue={base?.custo ?? ''}
             />
           </div>
 
@@ -315,7 +316,7 @@ export function ProdutoFormDialog({ produto, duplicarDe }: { produto?: Produto; 
             <div>
               <p className="text-sm font-medium">Tamanhos e estoque</p>
               <p className="text-xs text-muted-foreground">
-                Selecione os tamanhos disponíveis (0 ao 14) e informe o estoque de cada um.
+                Selecione os tamanhos disponíveis (0, 2, 4, 6, 8, 10, 12 e 14) e informe o estoque de cada um.
               </p>
             </div>
 
