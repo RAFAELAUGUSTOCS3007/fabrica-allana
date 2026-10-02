@@ -4,6 +4,7 @@ import { Search, SlidersHorizontal, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { TeamPicker } from '@/components/catalog/team-picker'
 import {
   Select,
   SelectContent,
@@ -35,8 +36,6 @@ export type Filtros = {
   tamanho: string
   ordenar: Ordenacao
 }
-
-const HIDE_SCROLLBAR = '[scrollbar-width:none] [&::-webkit-scrollbar]:hidden'
 
 function Chip({
   selected,
@@ -118,23 +117,7 @@ export function CatalogFilters({
   const filtrosExtrasAtivos = (filtros.tamanho !== 'todos' ? 1 : 0) + (filtros.ordenar !== 'recentes' ? 1 : 0)
 
   const timesRow = (
-    <div
-      className={cn(
-        'flex min-w-0 flex-1 gap-2 overflow-x-auto py-0.5',
-        HIDE_SCROLLBAR,
-        '[mask-image:linear-gradient(to_right,black_calc(100%-2rem),transparent)]',
-      )}
-    >
-      <Chip selected={filtros.time === 'todos'} onClick={() => onChange({ ...filtros, time: 'todos' })}>
-        Todos os times
-      </Chip>
-      {times.map((time) => (
-        <Chip key={time} selected={filtros.time === time} onClick={() => onChange({ ...filtros, time })}>
-          {time}
-        </Chip>
-      ))}
-      <span aria-hidden="true" className="w-6 shrink-0" />
-    </div>
+    <TeamPicker times={times} value={filtros.time} onChange={(time) => onChange({ ...filtros, time })} />
   )
 
   return (
