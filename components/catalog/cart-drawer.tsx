@@ -14,6 +14,7 @@ import {
 import { useCart, type CartItem } from '@/components/catalog/cart-context'
 import { buildWhatsAppOrderUrl } from '@/lib/whatsapp'
 import { CART_TRIGGER_ID } from '@/lib/fly-to-cart'
+import { QuantityInput } from '@/components/catalog/quantity-input'
 
 function formatBRL(value: number) {
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
@@ -61,9 +62,13 @@ function CartLine({ item }: { item: CartItem }) {
             >
               {item.quantidade === 1 ? <Trash2 className="size-3.5" /> : <Minus className="size-3.5" />}
             </button>
-            <span className="w-8 text-center text-sm font-medium tabular-nums" aria-live="polite">
-              {item.quantidade}
-            </span>
+            <QuantityInput
+              value={item.quantidade}
+              onChange={(q) => atualizarQuantidade(item.produto_id, item.tamanho, q)}
+              max={item.estoque_max}
+              label={`Quantidade de ${item.nome}`}
+              className="h-7 w-9 text-sm font-medium"
+            />
             <button
               type="button"
               aria-label="Aumentar quantidade"

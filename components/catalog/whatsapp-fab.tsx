@@ -16,8 +16,9 @@ export function WhatsAppFab({ alwaysRaisedOnMobile = false }: { alwaysRaisedOnMo
   const { totalItens } = useCart()
   const href = buildWhatsAppContactUrl()
 
-  // Sobe o botão quando há uma barra fixa inferior visível no mobile
-  const raised = alwaysRaisedOnMobile || totalItens > 0
+  // A barra do carrinho aparece em todas as larguras; a barra de compra do produto só no mobile
+  const position =
+    totalItens > 0 ? 'bottom-24' : alwaysRaisedOnMobile ? 'bottom-24 sm:bottom-6' : 'bottom-6'
 
   return (
     <a
@@ -27,7 +28,7 @@ export function WhatsAppFab({ alwaysRaisedOnMobile = false }: { alwaysRaisedOnMo
       aria-label="Fale conosco pelo WhatsApp"
       className={cn(
         'group fixed right-4 z-40 flex h-14 items-center overflow-hidden rounded-full bg-[#25D366] text-white shadow-lg shadow-black/15 transition-all duration-300 hover:bg-[#1ebe5b] hover:shadow-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#25D366] sm:right-6',
-        raised ? 'bottom-24 sm:bottom-6' : 'bottom-6',
+        position,
       )}
     >
       <span

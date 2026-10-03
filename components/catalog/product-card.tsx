@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { useCart } from '@/components/catalog/cart-context'
 import { ShareProduct } from '@/components/catalog/share-product'
+import { QuantityInput } from '@/components/catalog/quantity-input'
 import { flyToCart } from '@/lib/fly-to-cart'
 import type { Produto } from '@/lib/types'
 
@@ -163,7 +164,13 @@ export function ProductCard({ produto }: { produto: Produto }) {
           >
             <Minus className="h-3.5 w-3.5" />
           </button>
-          <span className="w-8 text-center text-sm font-medium">{quantidade}</span>
+          <QuantityInput
+            value={quantidade}
+            onChange={setQuantidade}
+            max={estoqueMaximo}
+            disabled={semEstoque}
+            className="h-8 w-9 text-sm font-medium"
+          />
           <button
             type="button"
             aria-label="Aumentar quantidade"
