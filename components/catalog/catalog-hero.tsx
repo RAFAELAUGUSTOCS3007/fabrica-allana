@@ -11,7 +11,7 @@ const benefits = [
 
 export function CatalogHero() {
   return (
-    <section className="sport-texture relative isolate min-h-[860px] overflow-hidden bg-primary text-primary-foreground sm:min-h-[660px] lg:min-h-[700px]">
+    <section className="sport-texture relative isolate min-h-[860px] overflow-hidden bg-primary text-primary-foreground sm:min-h-[660px] lg:min-h-[820px]">
       <Image
         src="/images/hero.png"
         alt="Crianças jogando futebol com conjuntos infantis A&A Sports"
@@ -24,7 +24,7 @@ export function CatalogHero() {
       <div aria-hidden="true" className="absolute inset-y-0 left-0 -z-10 w-full bg-primary/15 backdrop-blur-[2px] [mask-image:linear-gradient(to_right,black_15%,transparent_75%)] md:w-3/5 md:backdrop-blur-sm" />
       <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-32 -z-10 bg-gradient-to-t from-primary/70 to-transparent" />
 
-      <div className="mx-auto flex min-h-[860px] max-w-6xl items-end px-4 pb-10 pt-40 sm:min-h-[660px] sm:px-6 sm:pb-14 sm:pt-32 lg:min-h-[700px] lg:items-center lg:py-24">
+      <div className="mx-auto flex min-h-[860px] max-w-6xl items-end px-4 pb-10 pt-40 sm:min-h-[660px] sm:px-6 sm:pb-14 sm:pt-32 lg:min-h-[820px] lg:items-start lg:pb-20 lg:pt-44">
         <div className="flex max-w-2xl flex-col items-start gap-6">
           <span className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.18em] backdrop-blur-md">
             Catálogo direto da fábrica
