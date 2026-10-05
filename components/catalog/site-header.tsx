@@ -1,6 +1,6 @@
 'use client'
 
-import { FormEvent, useEffect, useState } from 'react'
+import { FormEvent, type MouseEvent, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Menu, Search, X } from 'lucide-react'
@@ -26,6 +26,19 @@ export function SiteHeader() {
 
   const overHero = isHome && !scrolled
 
+  function goHome(event: MouseEvent<HTMLAnchorElement>) {
+    setSearchOpen(false)
+    setMenuOpen(false)
+    setQuery('')
+
+    if (!isHome) return
+
+    event.preventDefault()
+    window.history.replaceState(null, '', '/')
+    window.dispatchEvent(new Event('aa:reset-catalog'))
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
   function search(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const catalogInput = document.getElementById('catalogo-busca') as HTMLInputElement | null
@@ -48,11 +61,12 @@ export function SiteHeader() {
       </div>
 
       <div className={cn('mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 transition-all sm:px-6', scrolled ? 'h-16' : 'h-20')}>
-        <Link href="/" aria-label="Ir para o início" className="group flex shrink-0 items-center rounded-md focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring">
-          <Logo onDark={overHero} className="scale-110 transition-transform duration-300 group-hover:-translate-y-0.5 sm:scale-125" />
+        <Link href="/" onClick={goHome} aria-label="Voltar ao início e limpar filtros" className="group flex shrink-0 items-center rounded-md py-1 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring">
+          <Logo onDark={overHero} className="transition-transform duration-300 group-hover:-translate-y-0.5" />
         </Link>
 
         <nav aria-label="Navegação principal" className={cn('hidden items-center gap-1 rounded-full border p-1 lg:flex', overHero ? 'border-white/15 bg-black/15 text-white backdrop-blur-md' : 'border-border bg-muted/60')}>
+          <Link href="/" onClick={goHome} className="rounded-full px-4 py-2 text-xs font-bold transition-colors hover:bg-current/10">Home</Link>
           <a href="/#catalogo" className="rounded-full px-4 py-2 text-xs font-bold transition-colors hover:bg-current/10">Catálogo</a>
           <a href="/#como-comprar" className="rounded-full px-4 py-2 text-xs font-bold transition-colors hover:bg-current/10">Como comprar</a>
           <a href={buildWhatsAppContactUrl()} target="_blank" rel="noopener noreferrer" className="rounded-full px-4 py-2 text-xs font-bold transition-colors hover:bg-current/10">Falar com a fábrica</a>
@@ -82,6 +96,7 @@ export function SiteHeader() {
       {menuOpen && (
         <nav aria-label="Menu móvel" className="border-t border-border bg-card p-4 text-foreground shadow-xl lg:hidden">
           <div className="mx-auto flex max-w-6xl flex-col gap-1">
+            <Link href="/" onClick={goHome} className="rounded-xl px-4 py-3 text-sm font-bold hover:bg-muted">Home</Link>
             <a href="/#catalogo" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-3 text-sm font-bold hover:bg-muted">Catálogo</a>
             <a href="/#como-comprar" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-3 text-sm font-bold hover:bg-muted">Como comprar</a>
             <a href={buildWhatsAppContactUrl()} target="_blank" rel="noopener noreferrer" onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-3 text-sm font-bold hover:bg-muted">Falar com a fábrica</a>

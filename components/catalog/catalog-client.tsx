@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { PackageSearch, X } from 'lucide-react'
 import { CatalogFilters, type Filtros } from '@/components/catalog/catalog-filters'
 import { ProductCard } from '@/components/catalog/product-card'
@@ -17,6 +17,12 @@ export function CatalogClient({ produtos }: { produtos: Produto[] }) {
   const [filtros, setFiltros] = useState<Filtros>(initialFilters)
   const times = useMemo(() => Array.from(new Set(produtos.map((p) => p.time))).sort(), [produtos])
   const tamanhos = useMemo(() => Array.from(new Set(produtos.flatMap((p) => (p.tamanhos ?? []).map((t) => t.tamanho)))).sort((a, b) => Number(a) - Number(b)), [produtos])
+
+  useEffect(() => {
+    const resetCatalog = () => setFiltros(initialFilters)
+    window.addEventListener('aa:reset-catalog', resetCatalog)
+    return () => window.removeEventListener('aa:reset-catalog', resetCatalog)
+  }, [])
 
   const filteredProducts = useMemo(() => {
     const query = filtros.busca.trim().toLowerCase()

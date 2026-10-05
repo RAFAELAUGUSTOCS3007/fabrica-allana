@@ -106,14 +106,14 @@ export function CartDrawer() {
           <Button
             id={CART_TRIGGER_ID}
             variant="outline"
-            aria-label={totalItens > 0 ? `Abrir carrinho com ${totalItens} peças, total ${formatBRL(total)}` : 'Abrir carrinho'}
+            aria-label={totalItens > 0 ? `Abrir carrinho com ${totalItens} ${totalItens === 1 ? 'peça' : 'peças'}, total ${formatBRL(total)}` : 'Abrir carrinho'}
             className="relative h-11 rounded-full border-current/15 bg-current/5 px-3 sm:px-4"
           />
         }
       >
         <ShoppingBag data-icon="inline-start" />
         <span className="hidden flex-col items-start leading-none sm:flex">
-          <span className="text-[10px] font-semibold uppercase tracking-wider opacity-65">{totalItens > 0 ? `${totalItens} peças` : 'Carrinho'}</span>
+          <span className="text-[10px] font-semibold uppercase tracking-wider opacity-65">{totalItens > 0 ? `${totalItens} ${totalItens === 1 ? 'peça' : 'peças'}` : 'Carrinho'}</span>
           <span className="mt-1 text-xs font-extrabold tabular-nums">{totalItens > 0 ? formatBRL(total) : 'Seu pedido'}</span>
         </span>
         {totalItens > 0 && (

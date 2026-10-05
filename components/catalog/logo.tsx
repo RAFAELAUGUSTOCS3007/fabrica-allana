@@ -8,17 +8,17 @@ export function Logo({
   onDark?: boolean
 }) {
   return (
-    <div className={cn('flex flex-col leading-none', className)}>
+    <div className={cn('flex min-w-[4.75rem] flex-col justify-center leading-none', className)}>
       <span
         className={cn(
-          'font-display text-xl font-extrabold tracking-tight',
+          'font-display text-2xl font-extrabold tracking-tight',
           onDark ? 'text-white' : 'text-[#12211f]',
         )}
       >
         A&amp;A
       </span>
-      <span aria-hidden="true" className="mt-1 h-px w-8 bg-gold" />
-      <span className="mt-1 text-[10px] font-bold uppercase tracking-[0.2em] text-gold">Sports</span>
+      <span aria-hidden="true" className="mt-1.5 h-0.5 w-9 bg-gold" />
+      <span className="mt-1.5 text-[10px] font-bold uppercase tracking-[0.24em] text-gold">Sports</span>
     </div>
   )
 }
