@@ -1,6 +1,7 @@
 'use client'
 
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts'
+import { BarChart3, CalendarRange, Flag } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   ChartContainer,
@@ -34,9 +35,12 @@ const timeConfig = {
 
 export function FaturamentoMensalChart({ data }: { data: { mes: string; faturamento: number; lucro: number }[] }) {
   return (
-    <Card className="lg:col-span-2">
+    <Card className="transition-shadow hover:shadow-md lg:col-span-2">
       <CardHeader>
-        <CardTitle className="text-base">Faturamento e lucro</CardTitle>
+        <CardTitle className="flex items-center gap-2 text-base">
+          <BarChart3 className="h-4 w-4 text-primary" />
+          Faturamento e lucro
+        </CardTitle>
         <CardDescription>Últimos 6 meses · lucro calculado pelo custo cadastrado</CardDescription>
       </CardHeader>
       <CardContent>
@@ -70,9 +74,12 @@ export function FaturamentoMensalChart({ data }: { data: { mes: string; faturame
 
 export function VendasDiariasChart({ data }: { data: { dia: string; faturamento: number }[] }) {
   return (
-    <Card>
+    <Card className="transition-shadow hover:shadow-md">
       <CardHeader>
-        <CardTitle className="text-base">Vendas por dia</CardTitle>
+        <CardTitle className="flex items-center gap-2 text-base">
+          <CalendarRange className="h-4 w-4 text-primary" />
+          Vendas por dia
+        </CardTitle>
         <CardDescription>Últimos 30 dias</CardDescription>
       </CardHeader>
       <CardContent>
@@ -92,9 +99,12 @@ export function VendasDiariasChart({ data }: { data: { dia: string; faturamento:
 
 export function VendasPorTimeChart({ data }: { data: { time: string; pecas: number }[] }) {
   return (
-    <Card>
+    <Card className="transition-shadow hover:shadow-md">
       <CardHeader>
-        <CardTitle className="text-base">Times que mais vendem</CardTitle>
+        <CardTitle className="flex items-center gap-2 text-base">
+          <Flag className="h-4 w-4 text-primary" />
+          Times que mais vendem
+        </CardTitle>
         <CardDescription>Peças vendidas nos últimos 6 meses</CardDescription>
       </CardHeader>
       <CardContent>
