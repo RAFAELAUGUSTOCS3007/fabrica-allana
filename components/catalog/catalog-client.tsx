@@ -1,76 +1,82 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { PackageSearch } from 'lucide-react'
+import { PackageSearch, Sparkles, X } from 'lucide-react'
 import { CatalogFilters, type Filtros } from '@/components/catalog/catalog-filters'
 import { ProductCard } from '@/components/catalog/product-card'
+import { Button } from '@/components/ui/button'
 import type { Produto } from '@/lib/types'
 
-const filtrosIniciais: Filtros = { busca: '', time: 'todos', tamanho: 'todos', ordenar: 'recentes' }
+const initialFilters: Filtros = { busca: '', time: 'todos', tamanho: 'todos', ordenar: 'recentes' }
 
-function estoqueTotal(produto: Produto) {
-  return (produto.tamanhos ?? []).reduce((sum, t) => sum + t.estoque_atual, 0)
+function totalStock(product: Produto) {
+  return (product.tamanhos ?? []).reduce((sum, size) => sum + size.estoque_atual, 0)
 }
 
 export function CatalogClient({ produtos }: { produtos: Produto[] }) {
-  const [filtros, setFiltros] = useState<Filtros>(filtrosIniciais)
-
+  const [filtros, setFiltros] = useState<Filtros>(initialFilters)
   const times = useMemo(() => Array.from(new Set(produtos.map((p) => p.time))).sort(), [produtos])
-  const tamanhos = useMemo(
-    () =>
-      Array.from(
-        new Set(produtos.flatMap((p) => (p.tamanhos ?? []).map((t) => t.tamanho))),
-      ).sort((a, b) => Number(a) - Number(b)),
-    [produtos],
-  )
-  const produtosFiltrados = useMemo(() => {
-    const busca = filtros.busca.trim().toLowerCase()
-    const filtrados = produtos.filter((produto) => {
-      if (busca && !`${produto.nome} ${produto.time}`.toLowerCase().includes(busca)) return false
-      if (filtros.time !== 'todos' && produto.time !== filtros.time) return false
-      if (
-        filtros.tamanho !== 'todos' &&
-        !(produto.tamanhos ?? []).some((t) => t.tamanho === filtros.tamanho && t.estoque_atual > 0)
-      )
-        return false
+  const tamanhos = useMemo(() => Array.from(new Set(produtos.flatMap((p) => (p.tamanhos ?? []).map((t) => t.tamanho)))).sort((a, b) => Number(a) - Number(b)), [produtos])
+  const featuredTeams = useMemo(() => times.slice(0, 5), [times])
+
+  const filteredProducts = useMemo(() => {
+    const query = filtros.busca.trim().toLowerCase()
+    const filtered = produtos.filter((product) => {
+      if (query && !`${product.nome} ${product.time} ${product.cor ?? ''}`.toLowerCase().includes(query)) return false
+      if (filtros.time !== 'todos' && product.time !== filtros.time) return false
+      if (filtros.tamanho !== 'todos' && !(product.tamanhos ?? []).some((size) => size.tamanho === filtros.tamanho && size.estoque_atual > 0)) return false
       return true
     })
-
-    const ordenados = [...filtrados]
-    if (filtros.ordenar === 'menor-preco') {
-      ordenados.sort((a, b) => a.preco_atacado - b.preco_atacado)
-    } else if (filtros.ordenar === 'maior-preco') {
-      ordenados.sort((a, b) => b.preco_atacado - a.preco_atacado)
-    } else {
-      ordenados.sort((a, b) => (a.criado_em < b.criado_em ? 1 : -1))
-    }
-
-    // Produtos esgotados vão para o fim
-    ordenados.sort((a, b) => (estoqueTotal(a) > 0 ? 0 : 1) - (estoqueTotal(b) > 0 ? 0 : 1))
-    return ordenados
+    const sorted = [...filtered]
+    if (filtros.ordenar === 'menor-preco') sorted.sort((a, b) => a.preco_atacado - b.preco_atacado)
+    else if (filtros.ordenar === 'maior-preco') sorted.sort((a, b) => b.preco_atacado - a.preco_atacado)
+    else sorted.sort((a, b) => (a.criado_em < b.criado_em ? 1 : -1))
+    sorted.sort((a, b) => (totalStock(a) > 0 ? 0 : 1) - (totalStock(b) > 0 ? 0 : 1))
+    return sorted
   }, [produtos, filtros])
+
+  const activeFilters = [
+    filtros.busca ? { key: 'busca', label: `Busca: ${filtros.busca}` } : null,
+    filtros.time !== 'todos' ? { key: 'time', label: filtros.time } : null,
+    filtros.tamanho !== 'todos' ? { key: 'tamanho', label: `Tamanho ${filtros.tamanho}` } : null,
+  ].filter(Boolean) as { key: keyof Filtros; label: string }[]
+
+  function removeFilter(key: keyof Filtros) {
+    setFiltros((current) => ({ ...current, [key]: key === 'busca' ? '' : 'todos' }))
+  }
 
   return (
     <div className="flex flex-1 flex-col">
-      <div className="sticky top-[61px] z-30 border-b border-border bg-background/95 backdrop-blur">
-        <div className="mx-auto max-w-6xl px-4 py-3 sm:px-6">
-          <CatalogFilters filtros={filtros} onChange={setFiltros} times={times} tamanhos={tamanhos} />
-        </div>
-      </div>
-
-      <div id="catalogo" className="mx-auto w-full max-w-6xl flex-1 scroll-mt-32 px-4 pb-28 pt-6 sm:px-6">
-        {produtosFiltrados.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border py-20 text-center">
-            <PackageSearch className="mb-3 h-8 w-8 text-muted-foreground" />
-            <p className="font-medium">Nenhum produto encontrado</p>
-            <p className="text-sm text-muted-foreground">Tente ajustar os filtros de busca.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-            {produtosFiltrados.map((produto) => (
-              <ProductCard key={produto.id} produto={produto} />
+      <section className="border-b border-border bg-primary text-primary-foreground">
+        <div className="mx-auto max-w-6xl px-4 py-7 sm:px-6">
+          <div className="mb-4 flex items-center gap-2 text-gold"><Sparkles className="size-4" /><p className="text-xs font-bold uppercase tracking-[0.18em]">Encontre por torcida</p></div>
+          <div className="flex gap-3 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {featuredTeams.map((team) => (
+              <button key={team} onClick={() => { setFiltros((current) => ({ ...current, time: team })); document.getElementById('catalogo')?.scrollIntoView({ behavior: 'smooth' }) }} className="group min-w-36 rounded-2xl border border-white/15 bg-white/5 p-4 text-left transition-all hover:-translate-y-0.5 hover:border-gold/60 hover:bg-white/10">
+                <span className="block text-[10px] font-bold uppercase tracking-wider text-primary-foreground/55">Coleção</span>
+                <span className="mt-1 block font-display text-lg font-bold">{team}</span>
+                <span className="mt-3 block text-xs text-gold group-hover:underline">Ver conjuntos</span>
+              </button>
             ))}
           </div>
+        </div>
+      </section>
+
+      <div className="sticky top-[61px] z-30 border-b border-border bg-background/95 backdrop-blur-xl">
+        <div className="mx-auto max-w-6xl px-4 py-3 sm:px-6"><CatalogFilters filtros={filtros} onChange={setFiltros} times={times} tamanhos={tamanhos} /></div>
+      </div>
+
+      <div id="catalogo" className="mx-auto w-full max-w-6xl flex-1 scroll-mt-32 px-4 pb-28 pt-7 sm:px-6">
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div><p className="text-xs font-bold uppercase tracking-[0.16em] text-gold">Catálogo A&amp;A</p><h2 className="font-display mt-1 text-2xl font-extrabold sm:text-3xl">Conjuntos disponíveis</h2><p className="mt-1 text-sm text-muted-foreground">{filteredProducts.length} {filteredProducts.length === 1 ? 'modelo encontrado' : 'modelos encontrados'}</p></div>
+          {activeFilters.length > 0 && <Button variant="ghost" size="sm" onClick={() => setFiltros(initialFilters)}>Limpar filtros</Button>}
+        </div>
+        {activeFilters.length > 0 && <div className="mb-5 flex flex-wrap gap-2">{activeFilters.map((filter) => <button key={filter.key} onClick={() => removeFilter(filter.key)} className="inline-flex items-center gap-1.5 rounded-full border bg-card px-3 py-1.5 text-xs font-semibold shadow-sm transition-colors hover:border-primary"><span>{filter.label}</span><X className="size-3" /></button>)}</div>}
+
+        {filteredProducts.length === 0 ? (
+          <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed bg-card py-20 text-center"><div className="mb-4 flex size-14 items-center justify-center rounded-full bg-secondary"><PackageSearch className="size-6 text-muted-foreground" /></div><p className="font-display text-lg font-bold">Nenhum conjunto por aqui</p><p className="mt-1 max-w-sm text-sm text-muted-foreground">Remova um filtro para voltar a ver os modelos disponíveis.</p><Button className="mt-5" onClick={() => setFiltros(initialFilters)}>Ver todos os conjuntos</Button></div>
+        ) : (
+          <div className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">{filteredProducts.map((product) => <ProductCard key={product.id} produto={product} />)}</div>
         )}
       </div>
     </div>

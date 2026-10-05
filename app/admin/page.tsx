@@ -1,6 +1,9 @@
 import Link from 'next/link'
 import {
   AlertTriangle,
+  ArrowRight,
+  PackagePlus,
+  PlusCircle,
   ArrowDownRight,
   ArrowUpRight,
   Boxes,
@@ -191,10 +194,24 @@ export default async function AdminDashboardPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold">Dashboard</h1>
-        <p className="text-sm text-muted-foreground">Visão geral da fábrica A&amp;A Sports.</p>
+      <div className="flex flex-col gap-4 rounded-3xl bg-primary p-5 text-primary-foreground sm:flex-row sm:items-center sm:justify-between sm:p-7">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[0.18em] text-gold">Painel da fábrica</p>
+          <h1 className="font-display mt-1 text-2xl font-extrabold sm:text-3xl">Olá, Allana. Vamos organizar o dia?</h1>
+          <p className="mt-1 text-sm text-primary-foreground/70">Estoque, pedidos e financeiro em um só lugar.</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Link href="/admin/produtos" className="inline-flex h-10 items-center gap-2 rounded-full bg-gold px-4 text-sm font-bold text-gold-foreground"><PackagePlus className="size-4" />Cadastrar produto</Link>
+          <Link href="/admin/vendas" className="inline-flex h-10 items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 text-sm font-bold"><PlusCircle className="size-4" />Registrar venda</Link>
+        </div>
       </div>
+
+      {estoqueBaixo.length > 0 && (
+        <Link href="/admin/estoque" className="group flex items-center justify-between gap-4 rounded-2xl border border-gold/40 bg-gold/10 p-4 transition-colors hover:bg-gold/15">
+          <div className="flex items-center gap-3"><span className="flex size-10 items-center justify-center rounded-full bg-gold text-gold-foreground"><AlertTriangle className="size-5" /></span><div><p className="font-bold">{estoqueBaixo.length} tamanhos precisam de atenção</p><p className="text-sm text-muted-foreground">Veja o que precisa ser reposto antes dos próximos pedidos.</p></div></div>
+          <ArrowRight className="size-5 transition-transform group-hover:translate-x-1" />
+        </Link>
+      )}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
