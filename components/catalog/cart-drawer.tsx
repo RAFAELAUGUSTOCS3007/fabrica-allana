@@ -37,19 +37,21 @@ function CartLine({ item }: { item: CartItem }) {
       <div className="flex min-w-0 flex-1 flex-col gap-2">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <p className="truncate text-sm font-medium">{item.nome}</p>
-            <p className="text-xs text-muted-foreground">
+            <p className="line-clamp-2 text-sm font-medium leading-snug text-pretty">{item.nome}</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
               {item.time} · Tam. {item.tamanho}
             </p>
           </div>
-          <button
-            type="button"
-            aria-label={`Remover ${item.nome} do carrinho`}
-            onClick={() => removerItem(item.produto_id, item.tamanho)}
-            className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
-          >
-            <Trash2 className="size-4" />
-          </button>
+          {item.quantidade > 1 && (
+            <button
+              type="button"
+              aria-label={`Remover ${item.nome} do carrinho`}
+              onClick={() => removerItem(item.produto_id, item.tamanho)}
+              className="shrink-0 rounded-md p-1 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+            >
+              <Trash2 className="size-4" />
+            </button>
+          )}
         </div>
 
         <div className="flex items-center justify-between gap-2">
