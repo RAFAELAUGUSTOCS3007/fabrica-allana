@@ -14,6 +14,7 @@ import {
 import { useCart, type CartItem } from '@/components/catalog/cart-context'
 import { buildWhatsAppOrderUrl } from '@/lib/whatsapp'
 import { CART_TRIGGER_ID } from '@/lib/fly-to-cart'
+import { QuantityInput } from '@/components/catalog/quantity-input'
 
 function formatBRL(value: number) {
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
@@ -36,19 +37,21 @@ function CartLine({ item }: { item: CartItem }) {
       <div className="flex min-w-0 flex-1 flex-col gap-2">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <p className="truncate text-sm font-medium">{item.nome}</p>
-            <p className="text-xs text-muted-foreground">
+            <p className="line-clamp-2 text-sm font-medium leading-snug text-pretty">{item.nome}</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
               {item.time} · Tam. {item.tamanho}
             </p>
           </div>
-          <button
-            type="button"
-            aria-label={`Remover ${item.nome} do carrinho`}
-            onClick={() => removerItem(item.produto_id, item.tamanho)}
-            className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
-          >
-            <Trash2 className="size-4" />
-          </button>
+          {item.quantidade > 1 && (
+            <button
+              type="button"
+              aria-label={`Remover ${item.nome} do carrinho`}
+              onClick={() => removerItem(item.produto_id, item.tamanho)}
+              className="shrink-0 rounded-md p-1 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+            >
+              <Trash2 className="size-4" />
+            </button>
+          )}
         </div>
 
         <div className="flex items-center justify-between gap-2">
@@ -61,9 +64,13 @@ function CartLine({ item }: { item: CartItem }) {
             >
               {item.quantidade === 1 ? <Trash2 className="size-3.5" /> : <Minus className="size-3.5" />}
             </button>
-            <span className="w-8 text-center text-sm font-medium tabular-nums" aria-live="polite">
-              {item.quantidade}
-            </span>
+            <QuantityInput
+              value={item.quantidade}
+              onChange={(q) => atualizarQuantidade(item.produto_id, item.tamanho, q)}
+              max={item.estoque_max}
+              label={`Quantidade de ${item.nome}`}
+              className="h-7 w-9 text-sm font-medium"
+            />
             <button
               type="button"
               aria-label="Aumentar quantidade"

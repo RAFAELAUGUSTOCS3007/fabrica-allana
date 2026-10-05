@@ -1,12 +1,18 @@
 import type React from 'react'
-import { AdminSidebar } from '@/components/admin/admin-sidebar'
+import { AdminMobileBar, AdminSidebar } from '@/components/admin/admin-sidebar'
+import { isAdminSession } from '@/lib/admin-guard'
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  const logado = await isAdminSession()
+
+  if (!logado) return <>{children}</>
+
   return (
     <div className="flex min-h-dvh bg-muted/40">
       <AdminSidebar />
-      <div className="flex-1">
-        <main className="mx-auto w-full max-w-6xl px-6 py-8">{children}</main>
+      <div className="flex min-w-0 flex-1 flex-col">
+        <AdminMobileBar />
+        <main className="mx-auto w-full min-w-0 max-w-6xl px-4 py-6 md:px-6 md:py-8">{children}</main>
       </div>
     </div>
   )

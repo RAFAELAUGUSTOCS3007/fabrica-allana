@@ -18,6 +18,7 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { useCart } from '@/components/catalog/cart-context'
 import { ShareProduct } from '@/components/catalog/share-product'
+import { QuantityInput } from '@/components/catalog/quantity-input'
 import { buildWhatsAppContactUrl } from '@/lib/whatsapp'
 import { flyToCart } from '@/lib/fly-to-cart'
 import type { Produto } from '@/lib/types'
@@ -219,9 +220,13 @@ export function ProductDetail({ produto }: { produto: Produto }) {
               >
                 <Minus className="h-4 w-4" />
               </button>
-              <span className="w-10 text-center text-base font-bold tabular-nums" aria-live="polite">
-                {quantidade}
-              </span>
+              <QuantityInput
+                value={quantidade}
+                onChange={setQuantidade}
+                max={estoqueMaximo}
+                disabled={semEstoque}
+                className="h-10 w-12 text-base"
+              />
               <button
                 type="button"
                 aria-label="Aumentar quantidade"

@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { useCart } from '@/components/catalog/cart-context'
 import { ShareProduct } from '@/components/catalog/share-product'
+import { QuantityInput } from '@/components/catalog/quantity-input'
 import { flyToCart } from '@/lib/fly-to-cart'
 import type { Produto } from '@/lib/types'
 
@@ -152,8 +153,8 @@ export function ProductCard({ produto }: { produto: Produto }) {
           </div>
         )}
       </CardContent>
-      <CardFooter className="flex items-center gap-2 pt-0">
-        <div className="flex items-center rounded-md border border-input">
+      <CardFooter className="flex flex-col items-stretch gap-2 px-3 pt-0 sm:flex-row sm:items-center sm:px-4">
+        <div className="flex items-center justify-between rounded-md border border-input sm:justify-start">
           <button
             type="button"
             aria-label="Diminuir quantidade"
@@ -163,7 +164,13 @@ export function ProductCard({ produto }: { produto: Produto }) {
           >
             <Minus className="h-3.5 w-3.5" />
           </button>
-          <span className="w-8 text-center text-sm font-medium">{quantidade}</span>
+          <QuantityInput
+            value={quantidade}
+            onChange={setQuantidade}
+            max={estoqueMaximo}
+            disabled={semEstoque}
+            className="h-8 w-9 text-sm font-medium"
+          />
           <button
             type="button"
             aria-label="Aumentar quantidade"
@@ -174,7 +181,7 @@ export function ProductCard({ produto }: { produto: Produto }) {
             <Plus className="h-3.5 w-3.5" />
           </button>
         </div>
-        <Button className="flex-1" disabled={semEstoque} onClick={handleAdicionar}>
+        <Button className="w-full sm:w-auto sm:flex-1" disabled={semEstoque} onClick={handleAdicionar}>
           <ShoppingCart className="mr-2 h-4 w-4" />
           Adicionar
         </Button>
