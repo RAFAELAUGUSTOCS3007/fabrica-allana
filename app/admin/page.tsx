@@ -11,6 +11,8 @@ import {
   TrendingUp,
   Trophy,
   Wallet,
+  Sparkles,
+  BarChart3,
 } from 'lucide-react'
 import {
   FaturamentoMensalChart,
@@ -163,6 +165,7 @@ export default async function AdminDashboardPage() {
     icon: typeof Wallet
     alert?: boolean
     trend?: number | null
+    accent: 'primary' | 'gold' | 'chart' | 'destructive'
   }[] = [
     {
       label: 'Faturado no mês',
@@ -170,18 +173,21 @@ export default async function AdminDashboardPage() {
       hint: variacao === null ? 'sem vendas no mês anterior' : 'vs. mês anterior',
       icon: Wallet,
       trend: variacao,
+      accent: 'primary',
     },
     {
       label: 'Lucro estimado',
       value: formatBRL(lucroMes),
       hint: `margem de ${margemMes.toFixed(0)}%`,
       icon: TrendingUp,
+      accent: 'gold',
     },
     {
       label: 'Ticket médio',
       value: formatBRL(ticketMedio),
       hint: `${vendasMes.length} ${vendasMes.length === 1 ? 'venda' : 'vendas'} · ${pecasMes} peças`,
       icon: Receipt,
+      accent: 'chart',
     },
     {
       label: 'Estoque baixo',
@@ -189,20 +195,46 @@ export default async function AdminDashboardPage() {
       hint: `${produtosAtivos.length} produtos ativos`,
       icon: AlertTriangle,
       alert: estoqueBaixo.length > 0,
+      accent: 'destructive',
     },
   ]
 
+  const accentClasses: Record<(typeof stats)[number]['accent'], { bg: string; text: string }> = {
+    primary: { bg: 'bg-primary/10', text: 'text-primary' },
+    gold: { bg: 'bg-gold/15', text: 'text-gold' },
+    chart: { bg: 'bg-chart-3/15', text: 'text-chart-3' },
+    destructive: { bg: 'bg-destructive/10', text: 'text-destructive' },
+  }
+
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-4 rounded-3xl bg-primary p-5 text-primary-foreground sm:flex-row sm:items-center sm:justify-between sm:p-7">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-[0.18em] text-gold">Painel da fábrica</p>
-          <h1 className="font-display mt-1 text-2xl font-extrabold sm:text-3xl">Olá, Allana. Vamos organizar o dia?</h1>
-          <p className="mt-1 text-sm text-primary-foreground/70">Estoque, pedidos e financeiro em um só lugar.</p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Link href="/admin/produtos" className="inline-flex h-10 items-center gap-2 rounded-full bg-gold px-4 text-sm font-bold text-gold-foreground"><PackagePlus className="size-4" />Cadastrar produto</Link>
-          <Link href="/admin/vendas" className="inline-flex h-10 items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 text-sm font-bold"><PlusCircle className="size-4" />Registrar venda</Link>
+      <div className="sport-texture relative overflow-hidden rounded-3xl bg-primary p-5 text-primary-foreground sm:p-7">
+        <Trophy className="absolute -right-6 -top-6 size-32 rotate-12 text-gold/10 sm:size-40" aria-hidden="true" />
+        <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.18em] text-gold">
+              <Sparkles className="size-3.5" />
+              Painel da fábrica
+            </p>
+            <h1 className="font-display mt-1 text-2xl font-extrabold sm:text-3xl">Olá, Allana. Vamos organizar o dia?</h1>
+            <p className="mt-1 text-sm text-primary-foreground/70">Estoque, pedidos e financeiro em um só lugar.</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href="/admin/produtos"
+              className="inline-flex h-10 items-center gap-2 rounded-full bg-gold px-4 text-sm font-bold text-gold-foreground shadow-sm transition-transform hover:scale-[1.03]"
+            >
+              <PackagePlus className="size-4" />
+              Cadastrar produto
+            </Link>
+            <Link
+              href="/admin/vendas"
+              className="inline-flex h-10 items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 text-sm font-bold transition-colors hover:bg-white/15"
+            >
+              <PlusCircle className="size-4" />
+              Registrar venda
+            </Link>
+          </div>
         </div>
       </div>
 
@@ -214,40 +246,44 @@ export default async function AdminDashboardPage() {
       )}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => (
-          <Card key={stat.label}>
-            <CardContent className="flex flex-col gap-3 pt-6">
-              <div className="flex items-center justify-between">
-                <p className="text-sm text-muted-foreground">{stat.label}</p>
-                <div
-                  className={`flex h-9 w-9 items-center justify-center rounded-full ${
-                    stat.alert ? 'bg-destructive/10' : 'bg-primary/10'
-                  }`}
-                >
-                  <stat.icon className={`h-4 w-4 ${stat.alert ? 'text-destructive' : 'text-primary'}`} />
+        {stats.map((stat) => {
+          const accent = accentClasses[stat.accent]
+          return (
+            <Card key={stat.label} className="transition-all hover:-translate-y-0.5 hover:shadow-md">
+              <CardContent className="flex flex-col gap-3 pt-6">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-muted-foreground">{stat.label}</p>
+                  <div className={`flex h-9 w-9 items-center justify-center rounded-full ${stat.alert ? 'bg-destructive/10' : accent.bg}`}>
+                    <stat.icon className={`h-4 w-4 ${stat.alert ? 'text-destructive' : accent.text}`} />
+                  </div>
                 </div>
-              </div>
-              <p className={`text-2xl font-bold tabular-nums ${stat.alert ? 'text-destructive' : ''}`}>{stat.value}</p>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                {typeof stat.trend === 'number' && (
-                  <span
-                    className={`inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 font-semibold ${
-                      stat.trend >= 0 ? 'bg-primary/10 text-primary' : 'bg-destructive/10 text-destructive'
-                    }`}
-                  >
-                    {stat.trend >= 0 ? (
-                      <ArrowUpRight className="h-3 w-3" aria-hidden="true" />
-                    ) : (
-                      <ArrowDownRight className="h-3 w-3" aria-hidden="true" />
-                    )}
-                    {Math.abs(stat.trend).toFixed(0)}%
-                  </span>
-                )}
-                <span>{stat.hint}</span>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+                <p className={`text-2xl font-bold tabular-nums ${stat.alert ? 'text-destructive' : ''}`}>{stat.value}</p>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  {typeof stat.trend === 'number' && (
+                    <span
+                      className={`inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 font-semibold ${
+                        stat.trend >= 0 ? 'bg-primary/10 text-primary' : 'bg-destructive/10 text-destructive'
+                      }`}
+                    >
+                      {stat.trend >= 0 ? (
+                        <ArrowUpRight className="h-3 w-3" aria-hidden="true" />
+                      ) : (
+                        <ArrowDownRight className="h-3 w-3" aria-hidden="true" />
+                      )}
+                      {Math.abs(stat.trend).toFixed(0)}%
+                    </span>
+                  )}
+                  <span>{stat.hint}</span>
+                </div>
+              </CardContent>
+            </Card>
+          )
+        })}
+      </div>
+
+      <div className="flex items-center gap-2 pt-2">
+        <BarChart3 className="size-4 text-primary" aria-hidden="true" />
+        <h2 className="font-display text-sm font-bold uppercase tracking-wide text-muted-foreground">Desempenho</h2>
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
@@ -257,7 +293,7 @@ export default async function AdminDashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <Card>
+        <Card className="transition-shadow hover:shadow-md">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <Boxes className="h-4 w-4 text-primary" />

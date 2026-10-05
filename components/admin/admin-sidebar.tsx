@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { LayoutDashboard, Shirt, Boxes, Receipt, LogOut, Store, Menu, WalletCards } from 'lucide-react' 
+import { LayoutDashboard, Shirt, Boxes, Receipt, LogOut, Store, Menu, WalletCards, Trophy } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Logo } from '@/components/catalog/logo'
 import { logoutAction } from '@/app/admin/actions/auth'
@@ -23,12 +23,16 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
 
   return (
     <>
-      <div className="px-5 py-6">
-        <Logo onDark />
-        <p className="mt-3 font-display text-lg font-extrabold">Painel da fábrica</p>
+      <div className="sport-texture relative overflow-hidden border-b border-sidebar-border/60 bg-gradient-to-br from-sidebar to-black/20 px-5 py-6">
+        <Trophy className="absolute -right-3 -top-3 size-20 rotate-12 text-gold/10" aria-hidden="true" />
+        <div className="relative">
+          <Logo onDark />
+          <p className="mt-3 font-display text-lg font-extrabold">Painel da fábrica</p>
+          <span className="mt-2 block h-0.5 w-10 rounded-full bg-gold" aria-hidden="true" />
+        </div>
       </div>
 
-      <nav className="flex flex-1 flex-col gap-1 px-3">
+      <nav className="flex flex-1 flex-col gap-1 px-3 py-4">
         {links.map((link) => {
           const isActive = link.href === '/admin' ? pathname === '/admin' : pathname.startsWith(link.href)
           const Icon = link.icon
@@ -39,13 +43,13 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
               onClick={onNavigate}
               aria-current={isActive ? 'page' : undefined}
               className={cn(
-                'flex items-center gap-3 rounded-md border-l-2 px-3 py-2.5 text-sm font-medium transition-colors',
+                'group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all',
                 isActive
-                  ? 'border-gold bg-sidebar-accent text-sidebar-accent-foreground'
-                  : 'border-transparent text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground',
+                  ? 'bg-gold/15 text-gold shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--gold)_35%,transparent)]'
+                  : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground',
               )}
             >
-              <Icon className="h-4 w-4" />
+              <Icon className={cn('h-4 w-4 transition-colors', isActive ? 'text-gold' : 'text-sidebar-foreground/50 group-hover:text-sidebar-accent-foreground')} />
               {link.label}
             </Link>
           )
@@ -53,10 +57,19 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
       </nav>
 
       <div className="flex flex-col gap-1 border-t border-sidebar-border px-3 py-4">
+        <div className="mb-2 flex items-center gap-3 rounded-xl bg-sidebar-accent/40 px-3 py-2.5">
+          <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-gold font-display text-sm font-bold text-gold-foreground">
+            A
+          </span>
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold">Allana</p>
+            <p className="truncate text-xs text-sidebar-foreground/60">Administradora</p>
+          </div>
+        </div>
         <Link
           href="/"
           target="_blank"
-          className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground"
+          className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground"
         >
           <Store className="h-4 w-4" />
           Ver catálogo
@@ -69,7 +82,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
             router.push('/admin/login')
             router.refresh()
           }}
-          className="flex items-center gap-3 rounded-md px-3 py-2.5 text-left text-sm font-medium text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground"
+          className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-sidebar-foreground/70 hover:bg-destructive/15 hover:text-destructive"
         >
           <LogOut className="h-4 w-4" />
           Sair
