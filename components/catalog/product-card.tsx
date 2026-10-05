@@ -31,6 +31,8 @@ export function ProductCard({ produto }: { produto: Produto }) {
   )
 
   const semEstoque = tamanhosComEstoque.length === 0
+  const estoqueTotal = tamanhosComEstoque.reduce((sum, tamanho) => sum + tamanho.estoque_atual, 0)
+  const ultimasUnidades = estoqueTotal > 0 && estoqueTotal <= 8
   const tamanhoUnico = tamanhosComEstoque.length === 1 ? tamanhosComEstoque[0].tamanho : null
 
   const [tamanhoSelecionado, setTamanhoSelecionado] = useState<string | null>(tamanhoUnico)
@@ -64,8 +66,8 @@ export function ProductCard({ produto }: { produto: Produto }) {
   }
 
   return (
-    <Card className="flex flex-col overflow-hidden rounded-2xl border-border py-0 shadow-none">
-      <div ref={imagemRef} className="relative aspect-square bg-surface-tint">
+    <Card className="group flex flex-col overflow-hidden rounded-3xl border-border/80 bg-card py-0 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-gold/50 hover:shadow-xl hover:shadow-primary/10">
+      <div ref={imagemRef} className="relative aspect-[4/5] overflow-hidden bg-surface-tint">
         <Link
           href={`/produto/${produto.id}`}
           className="block h-full w-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
@@ -76,7 +78,8 @@ export function ProductCard({ produto }: { produto: Produto }) {
             <img
               src={produto.foto_url || '/placeholder.svg'}
               alt={`${produto.nome} do ${produto.time}`}
-              className={cn('h-full w-full object-cover', semEstoque && 'opacity-60')}
+              loading="lazy"
+              className={cn('h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.035]', semEstoque && 'opacity-60')}
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center">
@@ -92,6 +95,9 @@ export function ProductCard({ produto }: { produto: Produto }) {
             className="h-8 w-8 rounded-full bg-background/90 shadow-sm backdrop-blur hover:bg-background"
           />
         </div>
+        {ultimasUnidades && (
+          <Badge className="absolute left-3 top-3 border-0 bg-gold text-gold-foreground shadow-sm">Últimas unidades</Badge>
+        )}
         {semEstoque && (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-white/40">
             <Badge
@@ -111,7 +117,10 @@ export function ProductCard({ produto }: { produto: Produto }) {
           {produto.time}
           {produto.cor ? ` · ${produto.cor}` : ''}
         </p>
-        <p className="font-display mt-2 text-lg font-extrabold text-primary">{formatBRL(produto.preco_atacado)}</p>
+        <div className="mt-2 flex items-end justify-between gap-2">
+          <p className="font-display text-xl font-extrabold text-primary">{formatBRL(produto.preco_atacado)}</p>
+          <span className="pb-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">o conjunto</span>
+        </div>
 
         {!semEstoque && (
           <div className="mt-3">

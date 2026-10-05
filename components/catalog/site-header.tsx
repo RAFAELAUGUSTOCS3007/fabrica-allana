@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { Search } from 'lucide-react'
 import { Logo } from '@/components/catalog/logo'
 import { CartDrawer } from '@/components/catalog/cart-drawer'
@@ -8,10 +9,10 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-card/95 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
-        <div className="flex items-center gap-3">
-          <Logo />
-          <span className="hidden text-xs text-muted-foreground sm:inline">Catálogo de atacado</span>
-        </div>
+        <Link href="/" aria-label="Ir para o início" className="group flex items-center gap-3 rounded-md focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring">
+          <Logo className="transition-transform duration-300 group-hover:-translate-y-0.5" />
+          <span className="hidden text-xs text-muted-foreground sm:inline">Catálogo direto da fábrica</span>
+        </Link>
         <div className="flex items-center gap-2">
           <button
             type="button"
