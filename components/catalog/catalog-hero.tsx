@@ -11,7 +11,7 @@ const benefits = [
 
 export function CatalogHero() {
   return (
-    <section className="relative isolate min-h-[760px] overflow-hidden bg-primary text-primary-foreground sm:min-h-[660px] lg:min-h-[700px]">
+    <section className="sport-texture relative isolate min-h-[760px] overflow-hidden bg-primary text-primary-foreground sm:min-h-[660px] lg:min-h-[700px]">
       <Image
         src="/images/hero.png"
         alt="Crianças jogando futebol com conjuntos infantis A&A Sports"

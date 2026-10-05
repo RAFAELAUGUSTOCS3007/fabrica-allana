@@ -5,6 +5,7 @@ import { CartProvider } from '@/components/catalog/cart-context'
 import { CatalogClient } from '@/components/catalog/catalog-client'
 import { CartBottomBar } from '@/components/catalog/cart-bottom-bar'
 import { WhatsAppFab } from '@/components/catalog/whatsapp-fab'
+import { HowToBuy } from '@/components/catalog/how-to-buy'
 import type { Produto } from '@/lib/types'
 
 export default async function CatalogPage() {
@@ -33,8 +34,9 @@ export default async function CatalogPage() {
         <main id="catalogo" className="flex flex-1 scroll-mt-16 flex-col">
           <CatalogClient produtos={produtos} />
         </main>
-        <footer className="border-t border-border py-6 text-center text-xs text-muted-foreground">
-          A&amp;A Sports · Preços exclusivos para revenda no atacado
+        <HowToBuy />
+        <footer className="border-t border-primary-foreground/10 bg-primary py-6 text-center text-xs text-primary-foreground/60">
+          A&amp;A Sports · Conjuntos infantis direto da fábrica
         </footer>
         <CartBottomBar />
         <WhatsAppFab />

@@ -19,7 +19,7 @@ function formatBRL(value: number) {
 }
 
 export function ProductCard({ produto }: { produto: Produto }) {
-  const { adicionarItem } = useCart()
+  const { adicionarItem, setCartOpen } = useCart()
   const imagemRef = useRef<HTMLDivElement>(null)
 
   const tamanhosComEstoque = useMemo(
@@ -62,7 +62,9 @@ export function ProductCard({ produto }: { produto: Produto }) {
     adicionarItem(produto, tamanhoSelecionado, quantidade)
     setQuantidade(1)
     setTamanhoSelecionado(tamanhoUnico)
-    toast.success(`${produto.nome} (tam. ${tamanhoSelecionado}) adicionado ao carrinho.`)
+    toast.success(`${produto.nome} (tam. ${tamanhoSelecionado}) adicionado ao carrinho.`, {
+      action: { label: 'Ver carrinho', onClick: () => setCartOpen(true) },
+    })
   }
 
   return (
