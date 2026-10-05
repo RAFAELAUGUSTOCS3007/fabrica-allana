@@ -2,6 +2,7 @@ import { createServiceClient } from '@/lib/supabase/service'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { MovimentacaoFormDialog } from '@/components/admin/movimentacao-form-dialog'
+import { StockGrid } from '@/components/admin/stock-grid'
 import type { MovimentacaoEstoque, Produto } from '@/lib/types'
 
 export default async function AdminEstoquePage() {
@@ -48,7 +49,14 @@ export default async function AdminEstoquePage() {
       </div>
 
       <div>
-        <h2 className="mb-3 text-sm font-semibold text-muted-foreground">Estoque atual por tamanho</h2>
+        <div className="mb-3 flex items-end justify-between gap-3">
+          <div><h2 className="text-sm font-semibold text-muted-foreground">Visão geral por tamanho</h2><p className="text-xs text-muted-foreground">Consulte rapidamente todos os conjuntos e identifique reposições.</p></div>
+        </div>
+        <StockGrid produtos={produtos} />
+      </div>
+
+      <div>
+        <h2 className="mb-3 text-sm font-semibold text-muted-foreground">Detalhamento do estoque</h2>
         <div className="overflow-hidden rounded-lg border border-border">
           <Table>
             <TableHeader>
