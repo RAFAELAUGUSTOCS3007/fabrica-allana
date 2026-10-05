@@ -116,7 +116,9 @@ export function ProductDetail({ produto }: { produto: Produto }) {
     }
     if (!abrirCarrinho) flyToCart(document.getElementById('produto-imagem'))
     adicionarItem(produto, tamanhoSelecionado, quantidade)
-    toast.success(`${produto.nome} (tam. ${tamanhoSelecionado}) adicionado ao carrinho.`)
+    toast.success(`${produto.nome} (tam. ${tamanhoSelecionado}) adicionado ao carrinho.`, {
+      action: abrirCarrinho ? undefined : { label: 'Ver carrinho', onClick: () => setCartOpen(true) },
+    })
     if (abrirCarrinho) setCartOpen(true)
   }
 

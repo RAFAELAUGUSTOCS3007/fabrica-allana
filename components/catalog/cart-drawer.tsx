@@ -101,13 +101,25 @@ export function CartDrawer() {
 
   return (
     <Sheet open={cartOpen} onOpenChange={setCartOpen}>
-      <SheetTrigger render={<Button id={CART_TRIGGER_ID} variant="outline" className="relative" />}>
-        <ShoppingBag className="h-4 w-4" />
-        <span className="hidden sm:inline">Carrinho</span>
+      <SheetTrigger
+        render={
+          <Button
+            id={CART_TRIGGER_ID}
+            variant="outline"
+            aria-label={totalItens > 0 ? `Abrir carrinho com ${totalItens} ${totalItens === 1 ? 'peça' : 'peças'}, total ${formatBRL(total)}` : 'Abrir carrinho'}
+            className="relative h-11 rounded-full border-current/15 bg-current/5 px-3 sm:px-4"
+          />
+        }
+      >
+        <ShoppingBag data-icon="inline-start" />
+        <span className="hidden flex-col items-start leading-none sm:flex">
+          <span className="text-[10px] font-semibold uppercase tracking-wider opacity-65">{totalItens > 0 ? `${totalItens} ${totalItens === 1 ? 'peça' : 'peças'}` : 'Carrinho'}</span>
+          <span className="mt-1 text-xs font-extrabold tabular-nums">{totalItens > 0 ? formatBRL(total) : 'Seu pedido'}</span>
+        </span>
         {totalItens > 0 && (
           <span
             key={totalItens}
-            className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-gold px-1 text-xs font-bold text-gold-foreground motion-safe:animate-in motion-safe:zoom-in-50 motion-safe:duration-300"
+            className="absolute -right-1 -top-1 flex size-5 items-center justify-center rounded-full bg-gold text-[10px] font-extrabold text-gold-foreground motion-safe:animate-in motion-safe:zoom-in-50 motion-safe:duration-300 sm:hidden"
           >
             {totalItens}
           </span>

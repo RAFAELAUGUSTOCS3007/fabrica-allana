@@ -148,6 +148,30 @@
   }
 }
 
+@layer components {
+  .sport-texture::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      linear-gradient(90deg, color-mix(in srgb, var(--primary-foreground) 5%, transparent) 1px, transparent 1px),
+      linear-gradient(color-mix(in srgb, var(--primary-foreground) 5%, transparent) 1px, transparent 1px),
+      radial-gradient(circle at 50% 50%, transparent 0 18%, color-mix(in srgb, var(--primary-foreground) 7%, transparent) 18.2% 18.6%, transparent 18.8%);
+    background-size: 72px 72px, 72px 72px, 560px 560px;
+    mask-image: linear-gradient(to bottom, black, transparent 85%);
+    opacity: .35;
+  }
+
+  .commercial-surface {
+    @apply rounded-3xl border border-border/80 bg-card shadow-sm;
+  }
+
+  .control-surface {
+    @apply rounded-xl border border-border bg-background;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after {
