@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { LayoutDashboard, Shirt, Boxes, Receipt, LogOut, Store, Menu } from 'lucide-react'
+import { LayoutDashboard, Shirt, Boxes, Receipt, LogOut, Store, Menu, WalletCards } from 'lucide-react' 
 import { cn } from '@/lib/utils'
 import { Logo } from '@/components/catalog/logo'
 import { logoutAction } from '@/app/admin/actions/auth'
@@ -13,7 +13,8 @@ const links = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/produtos', label: 'Produtos', icon: Shirt },
   { href: '/admin/estoque', label: 'Estoque', icon: Boxes },
-  { href: '/admin/vendas', label: 'Vendas', icon: Receipt },
+  { href: '/admin/vendas', label: 'Pedidos e vendas', icon: Receipt },
+  { href: '/admin/financeiro', label: 'Financeiro', icon: WalletCards },
 ]
 
 function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
