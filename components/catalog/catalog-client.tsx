@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { PackageSearch, Sparkles, X } from 'lucide-react'
+import { PackageSearch, X } from 'lucide-react'
 import { CatalogFilters, type Filtros } from '@/components/catalog/catalog-filters'
 import { ProductCard } from '@/components/catalog/product-card'
 import { Button } from '@/components/ui/button'
@@ -17,7 +17,6 @@ export function CatalogClient({ produtos }: { produtos: Produto[] }) {
   const [filtros, setFiltros] = useState<Filtros>(initialFilters)
   const times = useMemo(() => Array.from(new Set(produtos.map((p) => p.time))).sort(), [produtos])
   const tamanhos = useMemo(() => Array.from(new Set(produtos.flatMap((p) => (p.tamanhos ?? []).map((t) => t.tamanho)))).sort((a, b) => Number(a) - Number(b)), [produtos])
-  const featuredTeams = useMemo(() => times.slice(0, 5), [times])
 
   const filteredProducts = useMemo(() => {
     const query = filtros.busca.trim().toLowerCase()
@@ -47,21 +46,6 @@ export function CatalogClient({ produtos }: { produtos: Produto[] }) {
 
   return (
     <div className="flex flex-1 flex-col">
-      <section className="border-b border-border bg-primary text-primary-foreground">
-        <div className="mx-auto max-w-6xl px-4 py-7 sm:px-6">
-          <div className="mb-4 flex items-center gap-2 text-gold"><Sparkles className="size-4" /><p className="text-xs font-bold uppercase tracking-[0.18em]">Encontre por torcida</p></div>
-          <div className="flex gap-3 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {featuredTeams.map((team) => (
-              <button key={team} onClick={() => { setFiltros((current) => ({ ...current, time: team })); document.getElementById('catalogo')?.scrollIntoView({ behavior: 'smooth' }) }} className="group min-w-36 rounded-2xl border border-white/15 bg-white/5 p-4 text-left transition-all hover:-translate-y-0.5 hover:border-gold/60 hover:bg-white/10">
-                <span className="block text-[10px] font-bold uppercase tracking-wider text-primary-foreground/55">Coleção</span>
-                <span className="mt-1 block font-display text-lg font-bold">{team}</span>
-                <span className="mt-3 block text-xs text-gold group-hover:underline">Ver conjuntos</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      </section>
-
       <div className="sticky top-[61px] z-30 border-b border-border bg-background/95 backdrop-blur-xl">
         <div className="mx-auto max-w-6xl px-4 py-3 sm:px-6"><CatalogFilters filtros={filtros} onChange={setFiltros} times={times} tamanhos={tamanhos} /></div>
       </div>
