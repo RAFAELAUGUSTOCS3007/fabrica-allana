@@ -178,6 +178,23 @@
     from { opacity: 0; transform: translateY(6px); }
     to { opacity: 1; transform: translateY(0); }
   }
+  .admin-workspace [data-slot='card'] {
+    transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+  }
+  .admin-workspace [data-slot='card']:hover {
+    border-color: color-mix(in oklab, var(--primary) 28%, var(--border));
+  }
+  .admin-workspace [data-state='selected'] {
+    background: color-mix(in oklab, var(--primary) 8%, transparent);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .admin-workspace *, .admin-workspace *::before, .admin-workspace *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      scroll-behavior: auto !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
 
   .commercial-surface {
     @apply rounded-3xl border border-border/80 bg-card shadow-sm;

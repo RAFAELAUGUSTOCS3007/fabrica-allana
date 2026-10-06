@@ -14,11 +14,7 @@ import {
   Sparkles,
   BarChart3,
 } from 'lucide-react'
-import {
-  FaturamentoMensalChart,
-  VendasDiariasChart,
-  VendasPorTimeChart,
-} from '@/components/admin/dashboard-charts'
+import { AnalyticsWorkbench } from '@/components/admin/analytics-workbench'
 import { createServiceClient } from '@/lib/supabase/service'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -287,11 +283,7 @@ export default async function AdminDashboardPage() {
         <h2 className="font-display text-sm font-bold uppercase tracking-wide text-muted-foreground">Desempenho</h2>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <FaturamentoMensalChart data={mensal} />
-        <VendasDiariasChart data={diario} />
-        <VendasPorTimeChart data={porTime} />
-      </div>
+      <AnalyticsWorkbench vendas={vendasPeriodo} custos={Object.fromEntries(custoPorProduto)} />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card className="transition-shadow hover:shadow-md">
