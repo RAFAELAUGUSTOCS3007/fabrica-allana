@@ -12,7 +12,7 @@ function WhatsAppIcon({ className }: { className?: string }) {
   )
 }
 
-export function WhatsAppFab({ alwaysRaisedOnMobile = false }: { alwaysRaisedOnMobile?: boolean }) {
+export function WhatsAppFab({ alwaysRaisedOnMobile = false, hideOnMobile = false }: { alwaysRaisedOnMobile?: boolean; hideOnMobile?: boolean }) {
   const { totalItens } = useCart()
   const href = buildWhatsAppContactUrl()
 
@@ -29,6 +29,7 @@ export function WhatsAppFab({ alwaysRaisedOnMobile = false }: { alwaysRaisedOnMo
       className={cn(
         'group fixed right-4 z-40 flex h-14 items-center overflow-hidden rounded-full bg-[#25D366] text-white shadow-lg shadow-black/15 transition-all duration-300 hover:bg-[#1ebe5b] hover:shadow-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#25D366] sm:right-6',
         position,
+        hideOnMobile && 'max-lg:hidden',
       )}
     >
       <span

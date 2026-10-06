@@ -20,8 +20,13 @@ export function CatalogClient({ produtos }: { produtos: Produto[] }) {
 
   useEffect(() => {
     const resetCatalog = () => setFiltros(initialFilters)
+    const setTeam = (event: Event) => setFiltros({ ...initialFilters, time: String((event as CustomEvent).detail ?? 'todos') })
     window.addEventListener('aa:reset-catalog', resetCatalog)
-    return () => window.removeEventListener('aa:reset-catalog', resetCatalog)
+    window.addEventListener('aa:set-team', setTeam)
+    return () => {
+      window.removeEventListener('aa:reset-catalog', resetCatalog)
+      window.removeEventListener('aa:set-team', setTeam)
+    }
   }, [])
 
   const filteredProducts = useMemo(() => {
@@ -66,7 +71,7 @@ export function CatalogClient({ produtos }: { produtos: Produto[] }) {
         {filteredProducts.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed bg-card py-20 text-center"><div className="mb-4 flex size-14 items-center justify-center rounded-full bg-secondary"><PackageSearch className="size-6 text-muted-foreground" /></div><p className="font-display text-lg font-bold">Nenhum conjunto por aqui</p><p className="mt-1 max-w-sm text-sm text-muted-foreground">Remova um filtro para voltar a ver os modelos disponíveis.</p><Button className="mt-5" onClick={() => setFiltros(initialFilters)}>Ver todos os conjuntos</Button></div>
         ) : (
-          <div className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">{filteredProducts.map((product) => <ProductCard key={product.id} produto={product} />)}</div>
+          <div className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">{filteredProducts.map((product, index) => <div key={product.id} className="card-reveal" style={{ animationDelay: `${Math.min(index, 11) * 45}ms` }}><ProductCard produto={product} /></div>)}</div>
         )}
       </div>
     </div>

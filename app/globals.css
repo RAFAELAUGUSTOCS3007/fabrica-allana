@@ -10,6 +10,13 @@
   --font-display: 'Bricolage Grotesque', 'Manrope', ui-sans-serif, system-ui, sans-serif;
   --color-gold: var(--gold);
   --color-gold-foreground: var(--gold-foreground);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --color-danger-soft: var(--danger-soft);
   --color-surface-tint: var(--surface-tint);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -88,6 +95,13 @@
   --gold: #d4a94a;
   --gold-foreground: #12211f;
   --surface-tint: #f1f0ea;
+  --success: #1f7a4d;
+  --success-soft: #e3f2e9;
+  --warning: #9a6a0b;
+  --warning-soft: #fbf0d4;
+  --info: #2c5f8a;
+  --info-soft: #e2edf6;
+  --danger-soft: #fbe6e3;
 }
 
 .dark {
@@ -126,6 +140,13 @@
   --gold: #d4a94a;
   --gold-foreground: #12211f;
   --surface-tint: oklch(0.269 0 0);
+  --success: #5fd49a;
+  --success-soft: color-mix(in srgb, #5fd49a 16%, transparent);
+  --warning: #e8bf63;
+  --warning-soft: color-mix(in srgb, #e8bf63 16%, transparent);
+  --info: #7db6e8;
+  --info-soft: color-mix(in srgb, #7db6e8 16%, transparent);
+  --danger-soft: color-mix(in srgb, #f08a80 16%, transparent);
 }
 
 @layer base {
@@ -194,6 +215,30 @@
       scroll-behavior: auto !important;
       transition-duration: 0.01ms !important;
     }
+  }
+
+  .shimmer {
+    background-image: linear-gradient(100deg, transparent 30%, color-mix(in srgb, var(--card) 70%, transparent) 50%, transparent 70%);
+    background-size: 220% 100%;
+    animation: shimmer-slide 1.4s linear infinite;
+  }
+  @keyframes shimmer-slide {
+    from { background-position: 120% 0; }
+    to { background-position: -120% 0; }
+  }
+  .card-reveal {
+    animation: card-reveal .45s cubic-bezier(.2, .7, .2, 1) both;
+  }
+  @keyframes card-reveal {
+    from { opacity: 0; transform: translateY(14px) scale(.985); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  @keyframes progress-run {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(.92); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .shimmer, .card-reveal { animation: none; }
   }
 
   .commercial-surface {

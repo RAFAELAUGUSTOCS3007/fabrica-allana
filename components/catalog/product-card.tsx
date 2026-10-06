@@ -44,6 +44,7 @@ export function ProductCard({ produto }: { produto: Produto }) {
     ? estoqueDoTamanho
     : Math.max(0, ...tamanhosComEstoque.map((t) => t.estoque_atual))
 
+  const [imagemCarregada, setImagemCarregada] = useState(false)
   const [avisoTamanho, setAvisoTamanho] = useState(false)
   const avisoTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -69,7 +70,7 @@ export function ProductCard({ produto }: { produto: Produto }) {
 
   return (
     <Card className="group flex flex-col overflow-hidden rounded-3xl border-border/80 bg-card py-0 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-gold/50 hover:shadow-xl hover:shadow-primary/10">
-      <div ref={imagemRef} className="relative aspect-[4/5] overflow-hidden bg-surface-tint">
+      <div ref={imagemRef} className={cn('relative aspect-[4/5] overflow-hidden bg-surface-tint', produto.foto_url && !imagemCarregada && 'shimmer')}>
         <Link
           href={`/produto/${produto.id}`}
           className="block h-full w-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
@@ -81,7 +82,9 @@ export function ProductCard({ produto }: { produto: Produto }) {
               src={produto.foto_url || '/placeholder.svg'}
               alt={`${produto.nome} do ${produto.time}`}
               loading="lazy"
-              className={cn('h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.035]', semEstoque && 'opacity-60')}
+              ref={(node) => { if (node?.complete && node.naturalWidth > 0) setImagemCarregada(true) }}
+              onLoad={() => setImagemCarregada(true)}
+              className={cn('h-full w-full object-cover transition-[transform,opacity] duration-500 group-hover:scale-[1.035]', imagemCarregada ? (semEstoque ? 'opacity-60' : 'opacity-100') : 'opacity-0')}
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center">
