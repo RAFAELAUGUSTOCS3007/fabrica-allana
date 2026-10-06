@@ -1,5 +1,6 @@
 'use client'
 
+import type React from 'react'
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
@@ -100,7 +101,7 @@ export function AdminSidebar() {
   )
 }
 
-export function AdminDesktopBar() {
+export function AdminDesktopBar({ notificationCenter }: { notificationCenter?: React.ReactNode }) {
   const pathname = usePathname()
   const current = links.find((link) => link.href === '/admin' ? pathname === '/admin' : pathname.startsWith(link.href))
 
@@ -111,15 +112,12 @@ export function AdminDesktopBar() {
         <span aria-hidden="true" className="text-border">/</span>
         <span className="font-semibold" aria-current="page">{current?.label ?? 'Painel'}</span>
       </div>
-      <Link href="/" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-xs font-semibold transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring">
-        <Store className="size-3.5" aria-hidden="true" />
-        Abrir catálogo
-      </Link>
+      <div className="flex items-center gap-2">{notificationCenter}<Link href="/" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-xs font-semibold transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring"><Store className="size-3.5" aria-hidden="true" />Abrir catálogo</Link></div>
     </header>
   )
 }
 
-export function AdminMobileBar() {
+export function AdminMobileBar({ notificationCenter }: { notificationCenter?: React.ReactNode }) {
   const [open, setOpen] = useState(false)
   const pathname = usePathname()
   const atual =
@@ -133,7 +131,7 @@ export function AdminMobileBar() {
         <span className="h-5 w-px bg-sidebar-border" aria-hidden="true" />
         <span className="text-sm font-medium">{atual}</span>
       </div>
-      <Sheet open={open} onOpenChange={setOpen}>
+      <div className="flex items-center gap-1">{notificationCenter}<Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger
           aria-label="Abrir menu"
           className="flex size-10 items-center justify-center rounded-md hover:bg-sidebar-accent"
@@ -147,7 +145,7 @@ export function AdminMobileBar() {
           <SheetTitle className="sr-only">Menu do painel</SheetTitle>
           <SidebarContent onNavigate={() => setOpen(false)} />
         </SheetContent>
-      </Sheet>
+      </Sheet></div>
     </header>
   )
 }

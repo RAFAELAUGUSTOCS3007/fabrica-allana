@@ -2,13 +2,13 @@ import { createServiceClient } from '@/lib/supabase/service'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { MovimentacaoFormDialog } from '@/components/admin/movimentacao-form-dialog'
-import { StockGrid } from '@/components/admin/stock-grid'
-import type { MovimentacaoEstoque, Produto } from '@/lib/types'
+import { StockIntelligence } from '@/components/admin/stock-intelligence'
+import type { MovimentacaoEstoque, Produto, Venda } from '@/lib/types'
 
 export default async function AdminEstoquePage() {
   const supabase = createServiceClient()
 
-  const [produtosResult, movimentacoesResult] = await Promise.all([
+  const [produtosResult, movimentacoesResult, vendasResult] = await Promise.all([
     supabase
       .from('produtos')
       .select(
@@ -20,12 +20,14 @@ export default async function AdminEstoquePage() {
       .select('id, produto_id, tamanho, tipo, quantidade, motivo, data')
       .order('data', { ascending: false })
       .limit(30),
+    supabase.from('vendas').select('id, itens, total, data, cliente').order('data', { ascending: false }).limit(1000),
   ])
 
   const produtos = ((produtosResult.data ?? []) as unknown as (Produto & {
     produto_tamanhos: Produto['tamanhos']
   })[]).map((p) => ({ ...p, tamanhos: p.produto_tamanhos ?? [] })) as Produto[]
   const movimentacoes = (movimentacoesResult.data ?? []) as MovimentacaoEstoque[]
+  const vendas = (vendasResult.data ?? []) as Venda[]
   const produtosPorId = new Map(produtos.map((p) => [p.id, p]))
 
   const linhas = produtos
@@ -55,7 +57,7 @@ export default async function AdminEstoquePage() {
         <div className="mb-3 flex items-end justify-between gap-3">
           <div><h2 className="text-sm font-semibold text-muted-foreground">Visão geral por tamanho</h2><p className="text-xs text-muted-foreground">Consulte rapidamente todos os conjuntos e identifique reposições.</p></div>
         </div>
-        <StockGrid produtos={produtos} />
+        <StockIntelligence produtos={produtos} vendas={vendas} />
       </div>
 
       <div>
