@@ -1,12 +1,7 @@
 import { createServiceClient } from '@/lib/supabase/service'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { SalesHistory } from '@/components/admin/sales-history'
 import { VendaFormDialog } from '@/components/admin/venda-form-dialog'
-import { VendaRowActions } from '@/components/admin/venda-row-actions'
 import type { Produto, Venda } from '@/lib/types'
-
-function formatBRL(value: number) {
-  return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
-}
 
 export default async function AdminVendasPage() {
   const supabase = createServiceClient()
@@ -38,44 +33,7 @@ export default async function AdminVendasPage() {
         <VendaFormDialog produtos={produtos} />
       </div>
 
-      <div className="overflow-hidden rounded-lg border border-border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Data</TableHead>
-              <TableHead>Cliente</TableHead>
-              <TableHead>Itens</TableHead>
-              <TableHead className="text-right">Total</TableHead>
-              <TableHead className="w-[1%] text-right">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {vendas.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center text-sm text-muted-foreground">
-                  Nenhuma venda registrada ainda.
-                </TableCell>
-              </TableRow>
-            ) : (
-              vendas.map((venda) => (
-                <TableRow key={venda.id}>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {new Date(venda.data).toLocaleDateString('pt-BR')}
-                  </TableCell>
-                  <TableCell className="text-sm">{venda.cliente || 'Não informado'}</TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {venda.itens.map((item) => `${item.quantidade}x ${item.nome} (${item.tamanho})`).join(', ')}
-                  </TableCell>
-                  <TableCell className="text-right font-medium">{formatBRL(Number(venda.total))}</TableCell>
-                  <TableCell className="text-right">
-                    <VendaRowActions venda={venda} produtos={produtos} />
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+      <SalesHistory vendas={vendas} produtos={produtos} />
     </div>
   )
 }

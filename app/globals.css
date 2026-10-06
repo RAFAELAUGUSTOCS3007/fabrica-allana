@@ -163,6 +163,22 @@
     opacity: .35;
   }
 
+  .admin-workspace > div > div:first-child:not(.sport-texture):has(h1) {
+    @apply flex-wrap gap-4 rounded-2xl border border-border bg-card p-5 md:p-6;
+  }
+  .admin-workspace h1 { @apply font-display tracking-tight; }
+  .admin-workspace [data-slot='card'] { @apply shadow-sm; }
+  .admin-workspace [data-slot='table-header'] { @apply bg-muted/60; }
+  .admin-workspace [data-slot='table-cell'] { @apply py-4; }
+  .admin-workspace [data-slot='table-container'] { @apply bg-card; }
+  .admin-workspace [data-slot='card'], .admin-workspace > div {
+    animation: admin-arrive .35s ease-out both;
+  }
+  @keyframes admin-arrive {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
   .commercial-surface {
     @apply rounded-3xl border border-border/80 bg-card shadow-sm;
   }
