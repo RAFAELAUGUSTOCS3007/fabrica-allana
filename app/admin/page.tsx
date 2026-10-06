@@ -210,13 +210,14 @@ export default async function AdminDashboardPage() {
     <div className="flex flex-col gap-6">
       <div className="sport-texture relative overflow-hidden rounded-3xl bg-primary p-5 text-primary-foreground sm:p-7">
         <Trophy className="absolute -right-6 -top-6 size-32 rotate-12 text-gold/10 sm:size-40" aria-hidden="true" />
-        <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative flex flex-col gap-6">
           <div>
             <p className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.18em] text-gold">
               <Sparkles className="size-3.5" />
               Painel da fábrica
             </p>
-            <h1 className="font-display mt-1 text-2xl font-extrabold sm:text-3xl">Olá, Allana. Vamos organizar o dia?</h1>
+            <h1 className="font-display mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl">Seu negócio em campo.</h1>
+            <p className="mt-3 text-base font-medium">Olá, Allana. Vamos organizar o dia?</p>
             <p className="mt-1 text-sm text-primary-foreground/70">Estoque, pedidos e financeiro em um só lugar.</p>
           </div>
           <div className="flex flex-wrap gap-2">
