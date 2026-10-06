@@ -48,6 +48,9 @@ export default async function AdminEstoquePage() {
         <MovimentacaoFormDialog produtos={produtos} />
       </div>
 
+      <dl className="grid gap-4 sm:grid-cols-3">
+        {[{ label: 'Peças disponíveis', value: linhas.reduce((sum, item) => sum + item.tamanho.estoque_atual, 0) }, { label: 'Tamanhos para repor', value: linhas.filter(item => item.tamanho.estoque_atual <= item.tamanho.estoque_minimo).length }, { label: 'Tamanhos esgotados', value: linhas.filter(item => item.tamanho.estoque_atual === 0).length }].map(item => <div key={item.label} className="rounded-2xl border border-border bg-card p-5 shadow-sm"><dt className="text-sm text-muted-foreground">{item.label}</dt><dd className="mt-3 font-display text-3xl font-bold tabular-nums">{item.value}</dd></div>)}
+      </dl>
       <div>
         <div className="mb-3 flex items-end justify-between gap-3">
           <div><h2 className="text-sm font-semibold text-muted-foreground">Visão geral por tamanho</h2><p className="text-xs text-muted-foreground">Consulte rapidamente todos os conjuntos e identifique reposições.</p></div>
@@ -89,6 +92,7 @@ export default async function AdminEstoquePage() {
                       </TableCell>
                       <TableCell className="text-right">
                         <Badge variant={isLow ? 'destructive' : 'secondary'}>{tamanho.estoque_atual} un.</Badge>
+                        <div role="meter" aria-label={`Estoque do tamanho ${tamanho.tamanho}, referência: duas vezes o mínimo`} aria-valuemin={0} aria-valuemax={Math.max(tamanho.estoque_minimo * 2, tamanho.estoque_atual, 1)} aria-valuenow={tamanho.estoque_atual} className="ml-auto mt-2 h-1.5 w-24 overflow-hidden rounded-full bg-muted"><div className={isLow ? 'h-full rounded-full bg-destructive' : 'h-full rounded-full bg-primary'} style={{ width: `${Math.min(100, tamanho.estoque_atual / Math.max(tamanho.estoque_minimo * 2, 1) * 100)}%` }} /></div>
                       </TableCell>
                       <TableCell className="text-right text-sm text-muted-foreground">
                         {tamanho.estoque_minimo} un.

@@ -30,19 +30,39 @@ export function ProdutosTable({ produtos }: { produtos: Produto[] }) {
   const [isPending, startTransition] = useTransition()
   const [pendingId, setPendingId] = useState<string | null>(null)
 
+  const [query, setQuery] = useState('')
+  const [view, setView] = useState('grid')
+  const normalize = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+  const filtered = produtos.filter(produto => normalize(`${produto.nome} ${produto.time} ${produto.cor ?? ''}`).includes(normalize(query)))
+
   if (produtos.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border py-16 text-center">
         <PackageX className="mb-3 h-8 w-8 text-muted-foreground" />
         <p className="font-medium">Nenhum produto cadastrado</p>
-        <p className="text-sm text-muted-foreground">Cadastre o primeiro conjuntinho para começar.</p>
+        <p className="mb-5 text-sm text-muted-foreground">Cadastre o primeiro conjuntinho para começar.</p>
+        <ProdutoFormDialog />
       </div>
     )
   }
 
   return (
-    <div className="overflow-hidden rounded-lg border border-border">
-      <Table>
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-wrap items-center gap-3">
+        <input aria-label="Buscar produto" value={query} onChange={event => setQuery(event.target.value)} placeholder="Buscar por nome, time ou cor…" className="min-w-0 flex-1 rounded-xl border border-input bg-card px-4 py-3 text-sm focus:outline-ring" />
+        <label className="sr-only" htmlFor="product-view">Visualização</label><select id="product-view" value={view} onChange={event => setView(event.target.value)} className="rounded-xl border border-input bg-card px-3 py-3 text-sm"><option value="grid">Grade</option><option value="list">Lista</option></select>
+      </div>
+      <p className="text-xs text-muted-foreground" role="status">{filtered.length} de {produtos.length} produtos</p>
+      {view === 'grid' && <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">{filtered.map(produto => {
+        const total = (produto.tamanhos ?? []).reduce((sum, t) => sum + t.estoque_atual, 0)
+        const low = (produto.tamanhos ?? []).some(t => t.estoque_atual <= t.estoque_minimo)
+        return <article key={produto.id} className="group overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-shadow hover:shadow-lg">
+          <div className="relative aspect-[4/3] overflow-hidden bg-muted">{produto.foto_url ? <img src={produto.foto_url} alt={produto.nome} loading="lazy" className="size-full object-cover transition-transform duration-300 motion-safe:group-hover:scale-105" /> : <div className="flex size-full items-center justify-center"><PackageX className="size-12 text-muted-foreground" aria-label="Sem foto" /></div>}<div className="absolute left-3 top-3"><Badge variant={!total || low ? 'destructive' : 'secondary'}>{!total ? 'Esgotado' : low ? 'Estoque baixo' : 'Em estoque'}</Badge></div></div>
+          <div className="flex flex-col gap-3 p-4"><div><p className="text-xs text-muted-foreground">{produto.time} · {produto.categoria}</p><h2 className="mt-1 font-display text-lg font-bold">{produto.nome}</h2></div><div className="flex items-center justify-between gap-2"><strong className="text-lg tabular-nums">{formatBRL(produto.preco_atacado)}</strong><span className="text-xs text-muted-foreground">{total} peças</span></div><div className="flex items-center justify-between border-t border-border pt-3"><Badge variant="outline">{produto.ativo ? 'Ativo' : 'Inativo'}</Badge><div className="flex gap-1"><ProdutoFormDialog duplicarDe={produto} /><ProdutoFormDialog produto={produto} /></div></div></div>
+        </article>
+      })}</div>}
+      {!filtered.length && <p className="rounded-xl border border-dashed p-10 text-center text-muted-foreground">Nenhum produto encontrado. Tente outro nome ou time.</p>}
+      {view === 'list' && <div className="overflow-hidden rounded-xl border border-border"><Table>
         <TableHeader>
           <TableRow>
             <TableHead className="w-14"></TableHead>
@@ -55,7 +75,7 @@ export function ProdutosTable({ produtos }: { produtos: Produto[] }) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {produtos.map((produto) => {
+          {filtered.map((produto) => {
             const tamanhos = (produto.tamanhos ?? [])
               .slice()
               .sort((a, b) => Number(a.tamanho) - Number(b.tamanho))
@@ -112,6 +132,7 @@ export function ProdutosTable({ produtos }: { produtos: Produto[] }) {
                       startTransition(async () => {
                         const result = await toggleAtivoAction(produto.id, checked)
                         if (result?.error) toast.error(result.error)
+                        else toast.success(checked ? 'Produto ativado.' : 'Produto desativado.')
                         setPendingId(null)
                       })
                     }}
@@ -158,7 +179,7 @@ export function ProdutosTable({ produtos }: { produtos: Produto[] }) {
             )
           })}
         </TableBody>
-      </Table>
+      </Table></div>}
     </div>
   )
 }
