@@ -100,6 +100,25 @@ export function AdminSidebar() {
   )
 }
 
+export function AdminDesktopBar() {
+  const pathname = usePathname()
+  const current = links.find((link) => link.href === '/admin' ? pathname === '/admin' : pathname.startsWith(link.href))
+
+  return (
+    <header className="hidden items-center justify-between gap-4 border-b border-border bg-card px-6 py-4 md:flex">
+      <div className="flex items-center gap-3 text-sm">
+        <span className="text-muted-foreground">Área administrativa</span>
+        <span aria-hidden="true" className="text-border">/</span>
+        <span className="font-semibold" aria-current="page">{current?.label ?? 'Painel'}</span>
+      </div>
+      <Link href="/" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-xs font-semibold transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring">
+        <Store className="size-3.5" aria-hidden="true" />
+        Abrir catálogo
+      </Link>
+    </header>
+  )
+}
+
 export function AdminMobileBar() {
   const [open, setOpen] = useState(false)
   const pathname = usePathname()
