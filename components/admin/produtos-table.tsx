@@ -45,7 +45,22 @@ export function ProdutosTable({ produtos }: { produtos: Produto[] }) {
   const filtered = produtos.filter(produto => normalize(`${produto.nome} ${produto.time} ${produto.cor ?? ''}`).includes(normalize(query))).filter(produto => savedView === 'todos' || (savedView === 'criticos' ? isLow(produto) : !produto.ativo)).sort((a, b) => sort === 'estoque' ? stockTotal(a) - stockTotal(b) : sort === 'preco' ? Number(b.preco_atacado) - Number(a.preco_atacado) : a.nome.localeCompare(b.nome))
   const allSelected = filtered.length > 0 && filtered.every(produto => selected.has(produto.id))
   const toggleColumn = (column: string, checked: boolean) => setVisibleColumns(current => { const next = new Set(current); checked ? next.add(column) : next.delete(column); return next })
-  const runBulkStatus = (ativo: boolean) => startTransition(async () => { const results = await Promise.all(Array.from(selected).map(id => toggleAtivoAction(id, ativo))); const error = results.find(result => result?.error)?.error; if (error) toast.error(error); else { toast.success(`${selected.size} produtos ${ativo ? 'ativados' : 'desativados'}.`); setSelected(new Set()) } })
+  const runBulkStatus = (ativo: boolean) => startTransition(async () => {
+    const alvos = produtos.filter(produto => selected.has(produto.id))
+    const results = await Promise.all(alvos.map(produto => toggleAtivoAction(produto.id, ativo)))
+    const error = results.find(result => result?.error)?.error
+    if (error) return void toast.error(error)
+    toast.success(`${alvos.length} produtos ${ativo ? 'ativados' : 'desativados'}.`, {
+      action: {
+        label: 'Desfazer',
+        onClick: () => startTransition(async () => {
+          await Promise.all(alvos.map(produto => toggleAtivoAction(produto.id, produto.ativo)))
+          toast.info('Alteração desfeita.')
+        }),
+      },
+    })
+    setSelected(new Set())
+  })
 
   if (produtos.length === 0) {
     return (
@@ -77,8 +92,8 @@ export function ProdutosTable({ produtos }: { produtos: Produto[] }) {
         </article>
       })}</div>}
       {!filtered.length && <p className="rounded-xl border border-dashed p-10 text-center text-muted-foreground">Nenhum produto encontrado. Tente outro nome ou time.</p>}
-      {view === 'list' && <div className="overflow-hidden rounded-xl border border-border"><Table>
-        <TableHeader>
+      {view === 'list' && <div className="max-h-[70vh] overflow-auto rounded-xl border border-border bg-card [&_[data-slot=table-container]]:overflow-visible"><Table>
+        <TableHeader className="sticky top-0 z-10 bg-card/95 shadow-[0_1px_0_var(--border)] backdrop-blur">
           <TableRow>
             <TableHead className="w-10"><Checkbox aria-label="Selecionar todos os produtos visíveis" checked={allSelected} onCheckedChange={checked => setSelected(checked === true ? new Set(filtered.map(produto => produto.id)) : new Set())} /></TableHead>
             <TableHead className="w-14"></TableHead>
@@ -147,7 +162,17 @@ export function ProdutosTable({ produtos }: { produtos: Produto[] }) {
                       startTransition(async () => {
                         const result = await toggleAtivoAction(produto.id, checked)
                         if (result?.error) toast.error(result.error)
-                        else toast.success(checked ? 'Produto ativado.' : 'Produto desativado.')
+                        else toast.success(checked ? 'Produto ativado.' : 'Produto desativado.', {
+                          description: produto.nome,
+                          action: {
+                            label: 'Desfazer',
+                            onClick: () => startTransition(async () => {
+                              const undo = await toggleAtivoAction(produto.id, !checked)
+                              if (undo?.error) toast.error(undo.error)
+                              else toast.info('Alteração desfeita.')
+                            }),
+                          },
+                        })
                         setPendingId(null)
                       })
                     }}

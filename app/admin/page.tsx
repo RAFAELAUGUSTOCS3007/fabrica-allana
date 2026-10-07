@@ -13,8 +13,11 @@ import {
   Wallet,
   Sparkles,
   BarChart3,
+  Tv,
 } from 'lucide-react'
 import { AnalyticsWorkbench } from '@/components/admin/analytics-workbench'
+import { GoalCard } from '@/components/admin/goal-card'
+import { getMetaMensal } from '@/app/admin/actions/meta'
 import { createServiceClient } from '@/lib/supabase/service'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -32,7 +35,7 @@ export default async function AdminDashboardPage() {
   const startOfPrevMonth = new Date(agora.getFullYear(), agora.getMonth() - 1, 1)
   const inicioPeriodo = new Date(agora.getFullYear(), agora.getMonth() - 5, 1)
 
-  const [produtosResult, vendasPeriodoResult] = await Promise.all([
+  const [produtosResult, vendasPeriodoResult, metaMensal] = await Promise.all([
     supabase
       .from('produtos')
       .select('id, nome, time, ativo, preco_atacado, custo, produto_tamanhos(id, tamanho, estoque_atual, estoque_minimo)'),
@@ -42,6 +45,7 @@ export default async function AdminDashboardPage() {
       .gte('data', inicioPeriodo.toISOString())
       .order('data', { ascending: false })
       .limit(5000),
+    getMetaMensal(),
   ])
 
   const produtos = (produtosResult.data ?? []) as unknown as {
@@ -231,6 +235,13 @@ export default async function AdminDashboardPage() {
               <PlusCircle className="size-4" />
               Registrar venda
             </Link>
+            <Link
+              href="/admin/tv"
+              className="inline-flex h-10 items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 text-sm font-bold transition-colors hover:bg-white/15"
+            >
+              <Tv className="size-4" />
+              Modo TV
+            </Link>
           </div>
         </div>
       </div>
@@ -277,6 +288,8 @@ export default async function AdminDashboardPage() {
           )
         })}
       </div>
+
+      <GoalCard faturado={totalVendidoMes} meta={metaMensal} />
 
       <div className="flex items-center gap-2 pt-2">
         <BarChart3 className="size-4 text-primary" aria-hidden="true" />
