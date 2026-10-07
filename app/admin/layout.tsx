@@ -3,6 +3,7 @@ import { QuickSearch } from '@/components/admin/quick-search'
 import { AdminDesktopBar, AdminMobileBar, AdminSidebar } from '@/components/admin/admin-sidebar'
 import { MobileAdminDock } from '@/components/admin/mobile-admin-dock'
 import { NotificationCenter } from '@/components/admin/notification-center'
+import { RouteProgress } from '@/components/admin/route-progress'
 import { isAdminSession } from '@/lib/admin-guard'
 import { createServiceClient } from '@/lib/supabase/service'
 
@@ -29,6 +30,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <div className="flex min-h-dvh bg-muted/40">
+      <RouteProgress />
       <AdminSidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <AdminDesktopBar notificationCenter={<NotificationCenter pendencias={pendencias} />} />
